@@ -114,7 +114,7 @@ $p = new Polytope(INEQUALITIES=>$md);
 print $p -> VOLUME;
 
 example 3
-(1,2,4),(1,3,4),(5,4,3)
+(1,2,4),(1,3,4)
 
 $m3 = new Matrix([
 [0,1,0,0,0],
@@ -150,6 +150,27 @@ $md3 = new Matrix([
 
 $p = new Polytope(INEQUALITIES=>$md3);
 
+print $p -> VOLUME;
+
+example
+124,134,321,432
+
+$md = new Matrix([
+[0,1,0,0,0],
+[0,0,1,0,0],
+[0,0,0,1,0],
+[0,0,0,0,1],
+[1,-1,0,0,0],
+[1,0,-1,0,0],
+[1,0,0,-1,0],
+[1,0,0,0,-1],
+[1,-1,0,0,-1],
+[1,0,0,-1,-1],
+[-1,1,1,0,0],
+[-1,0,1,1,0],
+[2,-1,-1,-1,0]
+]);
+$p = new Polytope(INEQUALITIES=>$md);
 print $p -> VOLUME;
 
 example 4
