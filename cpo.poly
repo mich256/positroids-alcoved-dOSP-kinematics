@@ -2,26 +2,25 @@ example 1
 (5,4,3),(1,2,3),(5,1,2)
 
 $m1 = new Matrix([
-[0,1,0,0,0,0],
-[0,0,1,0,0,0],
-[0,0,0,1,0,0],
-[0,0,0,0,1,0],
-[0,0,0,0,0,1],
-[1,-1,0,0,0,0],
-[1,0,-1,0,0,0],
-[1,0,0,-1,0,0],
-[1,0,0,0,-1,0],
-[1,0,0,0,0,-1],
-[1,-1,-1,0,0,0],
-[-1,0,0,1,1,0],
-[-1,1,0,0,0,1],
-[2,0,0,-1,-1,0],
-[2,-1,0,0,0,-1],
+[0,1,0,0,0],
+[0,0,1,0,0],
+[0,0,0,1,0],
+[0,0,0,0,1],
+[1,-1,0,0,0],
+[1,0,-1,0,0],
+[1,0,0,-1,0],
+[1,0,0,0,-1],
+[1,-1,-1,0,0],
+[-1,0,0,1,1],
+[2,0,-1,-1,-1],
+[-2,1,1,1,1]
 ]);
 
 $p = new Polytope(INEQUALITIES=>$m1);
-
-print $p -> VOLUME;
+print $p->LATTICE;
+print $p ->VOLUME;
+print $p ->H_STAR_VECTOR;
+print $p->NORMAL;
 
 dual
 
@@ -41,8 +40,10 @@ $md1 = new Matrix([
 ]);
 
 $p = new Polytope(INEQUALITIES=>$md1);
-
-print $p -> VOLUME;
+print $p->LATTICE;
+print $p ->VOLUME;
+print $p ->H_STAR_VECTOR;
+print $p->NORMAL;
 
 example 2
 
@@ -271,7 +272,10 @@ $m = new Matrix([
 [1,0,-1,0,-1,0,-1]
 ]);
 $p = new Polytope(INEQUALITIES=>$m);
-print $p -> VOLUME;
+print $p->LATTICE;
+print $p ->VOLUME;
+print $p ->H_STAR_VECTOR;
+print $p->NORMAL;
 
 example
 126, 234, 531, 456, 615, 642
@@ -288,11 +292,10 @@ $m = new Matrix([
 [1,0,0,0,-1,0],
 [1,0,0,0,0,-1],
 [1,0,0,-1,-1,0],
-[-1,-1,-1,-1,-1,0],
-[3,1,1,1,1,0],
+[-1,1,1,1,1,0],
 [1,0,-1,-1,0,0],
-[-1,0,-1,-1,-1,-1],
-[3,0,1,1,1,1]
+[-1,0,1,1,1,1],
+[3,-1,-1,-1,-1,-1]
 ]);
 $p = new Polytope(INEQUALITIES=>$m);
 print $p -> VOLUME;
