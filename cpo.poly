@@ -21,6 +21,9 @@ print $p->LATTICE;
 print $p ->VOLUME;
 print $p ->H_STAR_VECTOR;
 print $p->NORMAL;
+print $p->VERTICES;
+print $p->FACETS;
+print $p->SIMPLE;
 
 dual
 
