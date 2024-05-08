@@ -1,13 +1,7 @@
 #!/opt/homebrew/bin/perl
 
 print("What is n? C is a cyclic order on 1..n \n");
-$n = <STDIN>;
-if ($n) {
-print("n = $n" \n);
-} else {
-print("What is n?,\n);
-$n = <STDIN>;
-}
+chomp($n = <STDIN>);
 
 # circular shift an array. Thanks stack overflow https://stackoverflow.com/questions/29491286/circular-shift-of-array
 

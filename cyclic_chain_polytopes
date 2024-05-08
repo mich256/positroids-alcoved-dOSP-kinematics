@@ -3,6 +3,15 @@
 $n=6;
 
 sub chains_to_polytope1 {
-	my @chains = @_;
-	my @arr = map { map {[0]} 0..$n } 0..$n;
-	foreach 
+my @chains = @_;
+my @arr = map { map {[0]} 0..$n } 0..$#chains;
+my $count = 0;
+foreach(@chain){
+foreach($_){
+$arr[$count][0] = 1;
+$arr[$count][$_] = 1;
+}
+$count++;
+}
+return @arr;
+}
