@@ -33,7 +33,6 @@ sub chain_to_fan{
     $arr_cones[$i] = $c;
     circ_shift(@chain);
   }
-  return @arr_cones;
+  my $a = new Array<Int>(\@arr_cones);
+  return check_fan_objects($a);
 }
-
-$U = union_of_cones(chain_to_fan);
