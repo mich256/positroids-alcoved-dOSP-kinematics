@@ -21,3 +21,35 @@ sub chains_to_polytope1 {
 	}
 	return @arr;
 }
+
+sub cinv_of_chain {
+	my @Y = @_;
+	my $size = $@Y;
+	my $a = $Y[0];
+	my $b = 0;
+	my $cinv = 0;
+	for (my $i = 1; $i < $size; $i++) {
+		if ($i == $size-1 & @Y[$i] > @Y[0]) {
+			$cinv++;
+			last;
+		}
+		$b = $Y[$i];
+		if ($a > $b) {
+			$cinv++;
+		}
+		$a = $b;
+	}
+	return $cinv;
+}
+			
+
+sub chains_to_polytope2 {
+	my @chains = @_;
+	my @arr = map { map {[0]} 0..$n } 0..$#chains+2*$n;
+	for (my $i = 0; $i < $n; $i++) {
+		$arr[$i][$i+1] = 1;
+		$arr[$i+$n][0] = 1;
+		$arr[$i+$n][$i+1] = -1;
+	}
+	my $count = 2*$n;
+	foreach $c (@chains) {
