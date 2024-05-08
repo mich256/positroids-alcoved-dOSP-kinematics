@@ -1,17 +1,23 @@
 #!/opt/homebrew/bin/perl
 
-$n=6;
+print("What is n? C is a cyclic order on 1..n \n");
+chomp($n = <>);
 
 sub chains_to_polytope1 {
-my @chains = @_;
-my @arr = map { map {[0]} 0..$n } 0..$#chains;
-my $count = 0;
-foreach(@chain){
-foreach($_){
-$arr[$count][0] = 1;
-$arr[$count][$_] = 1;
-}
-$count++;
-}
-return @arr;
+	my @chains = @_;
+	my @arr = map { map {[0]} 0..$n } 0..$#chains+2*$n;
+	for (my $i = 0; $i < $n; $i++) {
+		$arr[$i][$i+1] = 1;
+		$arr[$i+$n][0] = 1;
+		$arr[$i+$n][$i+1] = -1;
+	}
+	my $count = 2*$n;
+	foreach $c (@chains) {
+		foreach (@$c) {
+			$arr[$count][0] = 1;
+			$arr[$count][$_] = 1;
+		}
+		$count++;
+	}
+	return @arr;
 }
