@@ -44,12 +44,14 @@ $md1 = new Matrix([
 ]);
 
 $p = new Polytope(INEQUALITIES=>$md1);
-print $p -> VOLUME ,"\n";
-print $p->LATTICE, "\n";
-print $p ->H_STAR_VECTOR, "\n";
-print $p->NORMAL, "\n";
-print $p->VERTICES, "\n";
-print $p->FACETS, "\n";
+print "lattice polytope? ", $p->LATTICE, "\n";
+print "volume: ", $p->VOLUME, "\n";
+print "h*-vecotr: ", $p->H_STAR_VECTOR, "\n";
+print("if lattice, normal? ", $p->NORMAL, "\n") if ($p->LATTICE);
+print "vertices \n", $p->VERTICES, "\n";
+print "facets \n", $p->FACETS, "\n";
+$tc = $p->TRIANGULATION;
+print $tc ->FACETS, "\n";
 
 example 2
 
@@ -72,12 +74,14 @@ $m2 = new Matrix([
 [3,-1,-1,1,-1,-1]
 ]);
 $p = new Polytope(INEQUALITIES=>$m2);
-print $p -> VOLUME ,"\n";
-print $p->LATTICE, "\n";
-print $p ->H_STAR_VECTOR, "\n";
-print $p->NORMAL, "\n";
-print $p->VERTICES, "\n";
-print $p->FACETS, "\n";
+print "lattice polytope? ", $p->LATTICE, "\n";
+print "volume: ", $p->VOLUME, "\n";
+print "h*-vecotr: ", $p->H_STAR_VECTOR, "\n";
+print("if lattice, normal? ", $p->NORMAL, "\n") if ($p->LATTICE);
+print "vertices \n", $p->VERTICES, "\n";
+print "facets \n", $p->FACETS, "\n";
+$tc = $p->TRIANGULATION;
+print $tc ->FACETS, "\n";
 
 $md2 = new Matrix([
 [0,1,0,0,0,0,0],
@@ -98,12 +102,14 @@ $md2 = new Matrix([
 ]);
 
 $p = new Polytope(INEQUALITIES=>$md2);
-print $p -> VOLUME ,"\n";
-print $p->LATTICE, "\n";
-print $p ->H_STAR_VECTOR, "\n";
-print $p->NORMAL, "\n";
-print $p->VERTICES, "\n";
-print $p->FACETS, "\n";
+print "lattice polytope? ", $p->LATTICE, "\n";
+print "volume: ", $p->VOLUME, "\n";
+print "h*-vecotr: ", $p->H_STAR_VECTOR, "\n";
+print("if lattice, normal? ", $p->NORMAL, "\n") if ($p->LATTICE);
+print "vertices \n", $p->VERTICES, "\n";
+print "facets \n", $p->FACETS, "\n";
+$tc = $p->TRIANGULATION;
+print $tc ->FACETS, "\n";
 
 example
 
@@ -420,10 +426,11 @@ $md = new Matrix([
 [-1,0,0,1,1,0]
 ]);
 $p = new Polytope(INEQUALITIES=>$md);
-print $p->LATTICE;
-print $p ->VOLUME;
-print $p ->H_STAR_VECTOR;
-print $p->NORMAL;
-print $p->VERTICES;
-print $p->FACETS;
-print $p->SIMPLE;
+print "lattice polytope? ", $p->LATTICE, "\n";
+print "volume: ", $p->VOLUME, "\n";
+print "h*-vecotr: ", $p->H_STAR_VECTOR, "\n";
+print("if lattice, normal? ", $p->NORMAL, "\n") if ($p->LATTICE);
+print "vertices \n", $p->VERTICES, "\n";
+print "facets \n", $p->FACETS, "\n";
+$tc = $p->TRIANGULATION;
+print $tc ->FACETS, "\n";
