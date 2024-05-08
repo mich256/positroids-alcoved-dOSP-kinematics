@@ -17,12 +17,14 @@ $m1 = new Matrix([
 ]);
 
 $p = new Polytope(INEQUALITIES=>$m1);
-print $p -> VOLUME ,"\n";
-print $p->LATTICE, "\n";
-print $p ->H_STAR_VECTOR, "\n";
-print $p->NORMAL, "\n";
-print $p->VERTICES, "\n";
-print $p->FACETS, "\n";
+print "lattice polytope? ", $p->LATTICE, "\n";
+print "volume: ", $p->VOLUME, "\n";
+print "h*-vecotr: ", $p->H_STAR_VECTOR, "\n";
+print("if lattice, normal? ", $p->NORMAL, "\n") if ($p->LATTICE);
+print "vertices \n", $p->VERTICES, "\n";
+print "facets \n", $p->FACETS, "\n";
+$tc = $p->TRIANGULATION;
+print $tc ->FACETS, "\n";
 
 dual
 
@@ -304,8 +306,7 @@ print $p->VERTICES;
 print $p->FACETS;
 print $p->SIMPLE;
 
-example, a counter example that does not have a lattice chain polytope 
-and whose volume does not count the number of circular extensions
+example, not a lattice polytope but volume counts circular extensions
 126, 234, 531, 345, 615, 642
 
 $m = new Matrix([
@@ -332,13 +333,11 @@ $p = new Polytope(INEQUALITIES=>$m);
 print "lattice polytope? ", $p->LATTICE, "\n";
 print "volume: ", $p->VOLUME, "\n";
 print "h*-vecotr: ", $p->H_STAR_VECTOR, "\n";
-if ($p->LATTICE) print "if lattice, normal? ", $p->NORMAL, "\n";
+print("if lattice, normal? ", $p->NORMAL, "\n") if ($p->LATTICE);
 print "vertices \n", $p->VERTICES, "\n";
 print "facets \n", $p->FACETS, "\n";
-print "simplicial? ", $p->SIMPLICIAL, "\n";
-print "cocircuits \n", $p->COCIRCUITS, "\n";
-application 'topaz';
-print "triangulation \n", $p->TRIANGULATION;
+$tc = $p->TRIANGULATION;
+print $tc ->FACETS, "\n";
 
 example
 126, 234, 531, 456, 615, 642
@@ -369,7 +368,7 @@ print $p->VERTICES;
 print $p->FACETS;
 print $p->SIMPLE;
 
-example 
+example, volume of chain polytope does not count circular extensions
 
 1235, 642, 651, 543
 
@@ -392,13 +391,14 @@ $m = new Matrix([
 [1,0,0,-1,-1,-1,0]
 ]);
 $p = new Polytope(INEQUALITIES=>$m);
-print $p->LATTICE;
-print $p ->VOLUME;
-print $p ->H_STAR_VECTOR;
-print $p->NORMAL;
-print $p->VERTICES;
-print $p->FACETS;
-print $p->SIMPLE;
+print "lattice polytope? ", $p->LATTICE, "\n";
+print "volume: ", $p->VOLUME, "\n";
+print "h*-vecotr: ", $p->H_STAR_VECTOR, "\n";
+print("if lattice, normal? ", $p->NORMAL, "\n") if ($p->LATTICE);
+print "vertices \n", $p->VERTICES, "\n";
+print "facets \n", $p->FACETS, "\n";
+$tc = $p->TRIANGULATION;
+print $tc ->FACETS, "\n";
 
 $md = new Matrix([
 [0,1,0,0,0,0],
