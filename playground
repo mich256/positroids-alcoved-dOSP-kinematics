@@ -1,0 +1,37 @@
+n=6;
+
+# circular shift an array. Thanks stack overflow https://stackoverflow.com/questions/29491286/circular-shift-of-array
+
+sub circ_shift {
+  my ($list, $n) = @_;
+  push @$list, splice @$list, 0, $n;
+}
+
+sub chain_to_array{
+  my @chain = @_;
+  my $size = $#chain; # last index of chain, lengh of chain -1
+  my @arr = map { map { [0] } 0..$n } 1..$size; # create a zero array with n+1 columns and size rows
+  my $count = 0;
+  for ($i = 1; $i < $size; $i++) {
+    $arr[$count][$chain[$i-1]] = -1;
+    $arr[$count][$chain[$i]] = 1;
+    $count++;
+  }
+  return @arr;
+}
+
+sub chain_to_fan{
+  my @chain = @_;
+  my $size = $#chain; # last index of chain, lengh of chain -1
+  my @arr_cones = map { [] } 0..$size; # create an empty array
+  for ($i=0; $i <= $size; $i++) {
+    my @arr = chain_to_array(@chain);
+    my $m = new Matrix<Int>(\@arr);
+    my $c = new Cone(INEQUALITIES=>$m);
+    $arr_cones[$i] = $c;
+    circ_shift(@chain);
+  }
+  return @arr_cones;
+}
+
+$U = union_of_cones(chain_to_fan);
