@@ -12,7 +12,7 @@ sub circ_shift {
 
 sub chain_to_array {
   my @chain = @_;
-  my $size = $#chain; # last index of chain, lengh of chain -1
+  my $size = @chain; # last index of chain, lengh of chain -1
   my @arr = map { map { [0] } 0..$n } 1..$size; # create a zero array with n+1 columns and size rows
   my $count = 1;
   $arr[0][$chain[0]] = 1;
@@ -28,9 +28,9 @@ sub chain_to_array {
 
 sub chain_to_fan {
   my @chain = @_;
-  my $size = $#chain; # last index of chain, lengh of chain -1
+  my $size = @chain; # last index of chain, lengh of chain -1
   my @arr_cones = map { [] } 0..$size; # create an empty array
-  for (my $i=0; $i <= $size; $i++) {
+  for (my $i=0; $i < $size; $i++) {
     my @arr = chain_to_array(@chain);
     my $m = new Matrix<Int>(\@arr);
     my $c = new Cone(INEQUALITIES=>$m);
@@ -52,7 +52,8 @@ sub intersect_arr_fans {
 
 sub cyclic_order_complex {
   my @max_chains = @_;
-  my @arr_fans = map { [] } 0..$#max_chains;
+	my $size = scalar @max_chains;
+  my @arr_fans = map { [] } 1..$size;
   my $count = 0;
   foreach (@max_chains) {
     $arr_fans[$count] = chain_to_fan($_);
