@@ -24,7 +24,7 @@ sub chains_to_polytope1 {
 
 sub right_circ_des {
 	my @Y = @_;
-	my $size = $@Y;
+	my $size = @Y;
 	my $a = $Y[0];
 	my $b = 0;
 	my $cdesr = 0;
