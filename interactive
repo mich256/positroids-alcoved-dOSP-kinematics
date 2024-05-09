@@ -1,0 +1,13 @@
+#!/bin/sh
+. playground
+. cyclic_chain_polytopes
+
+while read INPUT_STRING
+do
+echo -e "What is n?\n"
+read n
+echo -e "What are the maximal chains?\n"
+local arr=("${(@f)$(cat)}")
+printf chains_to_polytope1(arr)
+printf chains_to_polytope2(arr)
+done
