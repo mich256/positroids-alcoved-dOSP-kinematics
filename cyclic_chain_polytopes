@@ -15,33 +15,32 @@ sub chains_to_polytope1 {
 	foreach $c (@chains) {
 		foreach (@$c) {
 			$arr[$count][0] = 1;
-			$arr[$count][$_] = 1;
+			$arr[$count][$_] = -1;
 		}
 		$count++;
 	}
 	return @arr;
 }
 
-sub cinv_of_chain {
+sub right_circ_des {
 	my @Y = @_;
 	my $size = $@Y;
 	my $a = $Y[0];
 	my $b = 0;
-	my $cinv = 0;
+	my $cdesr = 0;
 	for (my $i = 1; $i < $size; $i++) {
 		if ($i == $size-1 & @Y[$i] > @Y[0]) {
-			$cinv++;
+			$cdesr++;
 			last;
 		}
 		$b = $Y[$i];
 		if ($a > $b) {
-			$cinv++;
+			$cdesr++;
 		}
 		$a = $b;
 	}
-	return $cinv;
+	return $cdesr;
 }
-			
 
 sub chains_to_polytope2 {
 	my @chains = @_;
@@ -53,3 +52,13 @@ sub chains_to_polytope2 {
 	}
 	my $count = 2*$n;
 	foreach $c (@chains) {
+		$arr[$count][0] = right_circ_des(@$c);
+		foreach (@$c) {
+			$arr[$count][$_] = -1;
+		}
+		$count++;
+	}
+	return @arr;
+}
+
+	
