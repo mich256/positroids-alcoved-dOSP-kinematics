@@ -1,4 +1,6 @@
-#!/opt/homebrew/bin/perl
+package cyclic_chain_polytopes;
+use parent 'Exporter';
+our @EXPORT_OK = qw(chains_to_polytope1 chains_to_polytope2);
 
 sub chains_to_polytope1 {
 	my @chains = @_;

@@ -1,9 +1,7 @@
 #!/opt/homebrew/bin/perl
-. playground
-. cyclic_chain_polytopes
-
-use strict
-use warnings
+use strict;
+use warnings;
+use cyclic_chain_polytopes;
 
 while (<STDIN>) {
   printf "What is n?\n";
@@ -18,3 +16,5 @@ while (<STDIN>) {
 	}
 print chains_to_polytope1(@arr) "\n";
 print chains_to_polytope2(@arr);
+
+1;

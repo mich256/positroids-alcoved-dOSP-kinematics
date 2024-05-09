@@ -1,5 +1,3 @@
-#!/opt/homebrew/bin/perl
-
 # circular shift an array. Thanks stack overflow https://stackoverflow.com/questions/29491286/circular-shift-of-array
 
 sub circ_shift {
