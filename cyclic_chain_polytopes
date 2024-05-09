@@ -58,24 +58,24 @@ sub right_circ_des {
 	return $cdesr;
 }
 
-sub chains_to_polytope2 {
-	my @chains = @_;
-	my @arr = map [(0) x ($n+1)], 1..@chains+2*$n;
-	for (my $i = 0; $i < $n; $i++) {
-		$arr[$i][$i+1] = 1;
-		$arr[$i+$n][0] = 1;
-		$arr[$i+$n][$i+1] = -1;
-	}
-	my $count = 2*$n;
-	foreach my $c (@chains) {
-		$arr[$count][0] = right_circ_des(@$c);
-		foreach my $entry (@$c) {
-			$arr[$count][$entry] = -1;
-		}
-		$count++;
-	}
-	return @arr;
-}
+#sub chains_to_polytope2 {
+#	my @chains = @_;
+#	my @arr = map [(0) x ($n+1)], 1..@chains+2*$n;
+#	for (my $i = 0; $i < $n; $i++) {
+#		$arr[$i][$i+1] = 1;
+#		$arr[$i+$n][0] = 1;
+#		$arr[$i+$n][$i+1] = -1;
+#	}
+#	my $count = 2*$n;
+#	foreach my $c (@chains) {
+#		$arr[$count][0] = right_circ_des(@$c);
+#		foreach my $entry (@$c) {
+#			$arr[$count][$entry] = -1;
+#		}
+#		$count++;
+#	}
+#	return @arr;
+#}
 
 sub print_matrix {
 	my @arr = @_;
@@ -86,8 +86,8 @@ sub print_matrix {
 
 say "Flow polytope / Stanley's chain polytope construction:";
 print_matrix(chains_to_polytope1(@arr));
-say "dual to Lauren's construction:";
-print_matrix(chains_to_polytope2(@arr));
+# say "dual to Lauren's construction:";
+# print_matrix(chains_to_polytope2(@arr));
 
 }
 
