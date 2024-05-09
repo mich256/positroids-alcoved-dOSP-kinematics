@@ -1,0 +1,94 @@
+#!/opt/homebrew/bin/perl
+use strict;
+use warnings;
+use feature qw(say);
+
+print "type anything to star the interactive shell";
+
+while (<STDIN>) {
+	say "What is n?";
+	my $n = <STDIN>;
+	chomp $n;
+	last if $n eq '';
+    say "What are the (maximal) chains?";
+    my @arr;
+    my $count = 0;
+    while (my $line=<>)  {
+    	chomp($line);
+		last if $line eq '';
+		push(@arr, [split(',',$line)]);
+    }
+
+sub chains_to_polytope1 {
+	my @chains = @_;
+	my @arr = map [(0) x ($n+1)], 1..@chains+2*$n;
+	for (my $i = 0; $i < $n; $i++) {
+		$arr[$i][$i+1] = 1;
+		$arr[$i+$n][0] = 1;
+		$arr[$i+$n][$i+1] = -1;
+	}
+	my $count = 2*$n;
+	foreach my $c (@chains) {
+		foreach my $entry (@$c) {
+			$arr[$count][0] = 1;
+			$arr[$count][$entry] = -1;
+		}
+		$count++;
+	}
+	return @arr;
+}
+
+sub right_circ_des {
+	my @Y = @_;
+	my $size = @Y;
+	my $a = $Y[0];
+	my $b = 0;
+	my $cdesr = 0;
+	for (my $i = 1; $i < $size; $i++) {
+		if (($i == $size-1) & ($Y[$i] > $Y[0])) {
+			$cdesr++;
+			last;
+		}
+		$b = $Y[$i];
+		if ($a > $b) {
+			$cdesr++;
+		}
+		$a = $b;
+	}
+	return $cdesr;
+}
+
+sub chains_to_polytope2 {
+	my @chains = @_;
+	my @arr = map [(0) x ($n+1)], 1..@chains+2*$n;
+	for (my $i = 0; $i < $n; $i++) {
+		$arr[$i][$i+1] = 1;
+		$arr[$i+$n][0] = 1;
+		$arr[$i+$n][$i+1] = -1;
+	}
+	my $count = 2*$n;
+	foreach my $c (@chains) {
+		$arr[$count][0] = right_circ_des(@$c);
+		foreach my $entry (@$c) {
+			$arr[$count][$entry] = -1;
+		}
+		$count++;
+	}
+	return @arr;
+}
+
+sub print_matrix {
+	my @arr = @_;
+	for my $row (@arr) {
+		say('['.join(',', @$row).'],');
+	}
+}
+
+say "Flow polytope / Stanley's chain polytope construction:";
+print_matrix(chains_to_polytope1(@arr));
+say "dual to Lauren's construction:";
+print_matrix(chains_to_polytope2(@arr));
+
+}
+
+1;
