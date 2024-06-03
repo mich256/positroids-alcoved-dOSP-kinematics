@@ -16,12 +16,3 @@ def Hmatrix(P):
     pH = p.Hrepresentation()
     return (pH.b().transpose() + pH.A().transpose()).transpose()
 
-import sys
-
-def h_star_of_hypersimplex():
-    try:
-        n,k = input()
-        return h_star_vector(polytopes.hypersimplex(n,k))
-    except:
-        e = sys.exc_info()[0]
-        print e
