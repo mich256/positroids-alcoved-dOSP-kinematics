@@ -1,4 +1,7 @@
 #!/usr/local/bin/sage
+
+import random
+
 def GenerateMatrix(equsys, vars):
     A=matrix([[equ.rhs()]+[equ.lhs().coefficient(v) for v in vars] for equ in equsys])
     return A
@@ -16,12 +19,20 @@ def Hmatrix(P):
     pH = p.Hrepresentation()
     return (pH.b().transpose() + pH.A().transpose()).transpose()
 
-import sys
+def h_star_of_hypersimplex(n,k):
+    return h_star_vector(polytopes.hypersimplex(n,k))
 
-def h_star_of_hypersimplex():
-    try:
-        n,k = input()
-        return h_star_vector(polytopes.hypersimplex(n,k))
-    except:
-        e = sys.exc_info()[0]
-        print e
+def n_choose_2(n):
+    return Subsets(list(range(n), 2)
+
+def random_alcove(n):
+    d = {}
+    for s in n_choose_2(n):
+        r1 = random.randint(0,10)
+        r2 = random.randint(0,10)
+        d[s] = [min(r1,r2), max(r1,r2)]
+    return d
+
+class AlcovedPolytope:
+    def __init__(self, d):
+        
