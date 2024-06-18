@@ -22,4 +22,41 @@ def h_star_of_hypersimplex(n,k):
 def n_choose_2(n):
     return Subsets(list(range(n), 2))
 
-def 
+def winding(osp, decoration):
+    n = osp.base_set_cardinality()
+    m = len(osp)
+    w = osp.to_packed_word()
+    k = decoration.size()
+    return sum([(w[i+1]-w[i])%m for i in range(n-1)])//k
+
+def decorated_osp(n,k):
+    temp = []
+    for osp in OrderedSetPartitions(n):
+        m = len(osp)
+        for c in Compositions(k):
+            if c.cardinality() == m:
+                temp.append([osp,c,winding(osp,c)])
+    return temp
+
+def no_decorated_osp(n,k):
+    return len(decorated_osp(n,k))
+
+def hypersimplicial_dosp(n,k):
+    temp = []
+    for osp in OrderedSetPartitions(n):
+        m = len(osp)
+        for c in Compositions(k):
+            if len(c) != m:
+                continue
+            hypersimplicial = True
+            for i in range(m):
+                if c[i] > len(osp[i])-1:
+                    hypersimplicial = False
+                    break
+            if hypersimplicial:
+                temp.append([osp,c,winding(osp,c)])
+    return temp
+
+def no_hypersimplicial_dosp(n,k):
+    return len(hypersimplicial_dosp(n,k))
+
