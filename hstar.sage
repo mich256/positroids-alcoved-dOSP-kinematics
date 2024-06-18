@@ -1,16 +1,13 @@
-#!/usr/local/bin/sage
-
 import random
 
 def GenerateMatrix(equsys, vars):
     A=matrix([[equ.rhs()]+[equ.lhs().coefficient(v) for v in vars] for equ in equsys])
     return A
 
-sage -i normaliz
-sage -i pynormaliz
-
 def h_star_vector(P):
-    return P.ehrhart_series().numerator().coefficients()
+    d = P.dim()
+    E = P.ehrhart_polynomial()
+    return [sum(E(t)*binomial(d+1,j-t)*(-1)^(j-t) for t in (0..j)) for j in (0..d)]
 
 def hypercube(d):
     return Polyhedron(vertices = list(product([0,1],repeat=d)))
@@ -23,16 +20,6 @@ def h_star_of_hypersimplex(n,k):
     return h_star_vector(polytopes.hypersimplex(n,k))
 
 def n_choose_2(n):
-    return Subsets(list(range(n), 2)
+    return Subsets(list(range(n), 2))
 
-def random_alcove(n):
-    d = {}
-    for s in n_choose_2(n):
-        r1 = random.randint(0,10)
-        r2 = random.randint(0,10)
-        d[s] = [min(r1,r2), max(r1,r2)]
-    return d
-
-class AlcovedPolytope:
-    def __init__(self, d):
-        
+def 
