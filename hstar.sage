@@ -29,21 +29,29 @@ def winding(osp, decoration):
     k = decoration.size()
     return sum([(w[i+1]-w[i])%m for i in range(n-1)])//k
 
-def decorated_osp(n,k):
+def CyclicOrderedSetPartitions(n):
     temp = []
-    for osp in OrderedSetPartitions(n):
+    for c in OrderedSetPartitions(n):
+        if 1 in c[0]:
+            temp.append(c)
+    return temp
+
+def decorated_osp(n,k):
+    temp = {}
+    for osp in CyclicOrderedSetPartitions(n):
         m = len(osp)
         for c in Compositions(k):
-            if c.cardinality() == m:
-                temp.append([osp,c,winding(osp,c)])
+            if len(c) == m:
+                temp.setdefault(winding(osp,c), [])
+                temp[winding(osp,c)].append([osp, c])
     return temp
 
 def no_decorated_osp(n,k):
-    return len(decorated_osp(n,k))
+    return {k: len(v) for (k, v) in decorated_osp(n,k).items()}
 
 def hypersimplicial_dosp(n,k):
-    temp = []
-    for osp in OrderedSetPartitions(n):
+    temp = {}
+    for osp in CyclicOrderedSetPartitions(n):
         m = len(osp)
         for c in Compositions(k):
             if len(c) != m:
@@ -54,9 +62,10 @@ def hypersimplicial_dosp(n,k):
                     hypersimplicial = False
                     break
             if hypersimplicial:
-                temp.append([osp,c,winding(osp,c)])
+                temp.setdefault(winding(osp,c), [])
+                temp[winding(osp,c)].append([osp, c])
     return temp
 
 def no_hypersimplicial_dosp(n,k):
-    return len(hypersimplicial_dosp(n,k))
+    return {k: len(v) for (k, v) in hypersimplicial_dosp(n,k).items()}
 
