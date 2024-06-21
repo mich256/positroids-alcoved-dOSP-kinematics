@@ -1,5 +1,3 @@
-import random
-
 def GenerateMatrix(equsys, vars):
     A=matrix([[equ.rhs()]+[equ.lhs().coefficient(v) for v in vars] for equ in equsys])
     return A
