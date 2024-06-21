@@ -1,6 +1,6 @@
 R = RootSystem(['A',2])
 
-def AlcovedPolytope:
+class AlcovedPolytope:
 	def __init__(self, R, BoundaryParameters):
 		self.root_system = R
 		self.boundaries = BoundaryParameters
