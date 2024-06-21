@@ -47,7 +47,7 @@ def decorated_osp(n,k):
     return temp
 
 def no_decorated_osp(n,k):
-    return {k: len(v) for (k, v) in decorated_osp(n,k).items()}
+    return {key: len(value) for (key, value) in decorated_osp(n,k).items()}
 
 def hypersimplicial_dosp(n,k):
     temp = {}
@@ -67,5 +67,5 @@ def hypersimplicial_dosp(n,k):
     return temp
 
 def no_hypersimplicial_dosp(n,k):
-    return {k: len(v) for (k, v) in hypersimplicial_dosp(n,k).items()}
+    return {key: len(value) for (key, value) in hypersimplicial_dosp(n,k).items()}
 
