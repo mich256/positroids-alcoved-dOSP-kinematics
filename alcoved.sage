@@ -16,7 +16,7 @@ class AlcovedPolytope:
 		return True
 
 	def cover(self, coweight):
-		if !self.is_member(coweight):
+		if self.is_member(coweight) == False:
 			raise Exception('coweight is not in the alcoved polytope')
 		foo = self.fundamental_coweights.list().append(self.rho)
 		return sum([i for i in foo if self.is_member(coweight-i)])
