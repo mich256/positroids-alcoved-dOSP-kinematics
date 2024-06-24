@@ -60,12 +60,37 @@ def family_registry(n,k):
             temp = []
             m = len(hdosp)
             for i in range(m):
-                family = sorted(list(hdosp[i]))
+                family = sorted(hdosp[i])
                 l = len(family)
                 family = family[l-decoration[i]:]+list(reversed(family[0:l-decoration[i]]))
-                temp += family
+                temp.append(family)
             foo[winding_no].append(temp)
     return foo
 
 def no_hypersimplicial_dosp(n,k):
     return {key: len(value) for (key, value) in hypersimplicial_dosp(n,k).items()}
+
+def registry_to_permutation(R):
+    n = 0
+    max_index = 0
+    m = len(R)
+    for i in range(m):
+        family = R[i]
+        if max(family) > n:
+            n = max(family)
+            max_index = i
+    # Case A:
+    if len(R[max_index]) == 1:
+        R.pop()
+        return registry_to_permutation(R)+[n]
+    # Case C:
+    if len(R[max_index]) > 2:
+        index_of_n_in_F = R[max_index].index(n)
+        friend_of_n = R[index_of_n_in_F+1]
+        F = R[max_index].remove(n)
+        R[max_index] = F
+        pi = registry_to_permutation(R)
+        index_of_friend_in_pi = pi.index(friend_of_n)
+        return pi.insert(index_of_friend_in_pi-1, n)
+    # Case B:
+    TODO
