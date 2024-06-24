@@ -60,11 +60,9 @@ def family_registry(n,k):
             temp = []
             m = len(hdosp)
             for i in range(m):
-                family = list(hdosp[i])
-                family.sort()
-                curry = family[0:m-decoration[i]]
-                curry.reverse()
-                family = family[m-decoration[i]:]+curry
+                family = sorted(list(hdosp[i]))
+                l = len(family)
+                family = family[l-decoration[i]:]+list(reversed(family[0:l-decoration[i]]))
                 temp += family
             foo[winding_no].append(temp)
     return foo

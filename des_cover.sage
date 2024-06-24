@@ -5,10 +5,6 @@ def circular_descents(w):
 def cdes(w):
 	return len(circular_descents(w))
 
-def des(w):
-	n = len(w)
-	return len([i for i in range(n-1) if w[i] > w[i+1]])
-
 def cover(w):
 	n = len(w)
 	temp = sum([int(w[(i+1)%n]>w[i]+1) for i in range(n)])
@@ -33,3 +29,15 @@ def perm_cover(n,k):
 
 def no_perm_cover(n,k):
 	return {key: len(value) for (key, value) in perm_cover(n,k).items()}
+
+def perm_cover_polynomial(n,k):
+	R.<t> = PolynomialRing(QQ)
+	temp = no_perm_cover(n,k)
+	return sum([value*t^key for (key, value) in temp.items()])
+
+load('hstar.sage')
+
+def test_cover(n,k):
+	R.<t> = PolynomialRing(QQ)
+	return perm_cover_polynomial(n-1,k-1) + (1-t)*h_star_polynomial_of_hypersimplex(n-1,k-1) \
+	== h_star_polynomial_of_hypersimplex(n,k)
