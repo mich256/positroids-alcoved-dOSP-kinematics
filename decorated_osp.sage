@@ -51,46 +51,168 @@ def hypersimplicial_dosp(n,k):
                 temp[winding(osp,c)[1]].append([osp, c])
     return temp
 
-def family_registry(n,k):
-    foo = {}
-    bar = hypersimplicial_dosp(n,k)
-    for winding_no in bar.keys():
-        foo.setdefault(winding_no, [])
-        for hdosp, decoration in bar[winding_no]:
-            temp = []
-            m = len(hdosp)
-            for i in range(m):
-                family = sorted(hdosp[i])
-                l = len(family)
-                family = family[l-decoration[i]:]+list(reversed(family[0:l-decoration[i]]))
-                temp.append(family)
-            foo[winding_no].append(temp)
-    return foo
-
 def no_hypersimplicial_dosp(n,k):
     return {key: len(value) for (key, value) in hypersimplicial_dosp(n,k).items()}
 
-def registry_to_permutation(R):
-    n = 0
-    max_index = 0
-    m = len(R)
-    for i in range(m):
-        family = R[i]
-        if max(family) > n:
-            n = max(family)
-            max_index = i
-    # Case A:
-    if len(R[max_index]) == 1:
-        R.pop()
-        return registry_to_permutation(R)+[n]
-    # Case C:
-    if len(R[max_index]) > 2:
-        index_of_n_in_F = R[max_index].index(n)
-        friend_of_n = R[index_of_n_in_F+1]
-        F = R[max_index].remove(n)
-        R[max_index] = F
-        pi = registry_to_permutation(R)
+# rewrite everything in class language. object oriented!
+
+class Family:
+    def __init__(self, *args):
+        if len(args) == 1:
+            self.colored_sequence = args[0]
+        if len(args) == 2:
+            t = sorted(args[0])
+            self.colored_sequence = t[args[1]:]+list(reversed(t[0:args[1]]))
+
+    def underlying_set(self):
+        return set(self.colored_sequence)
+    
+    def maximum(self):
+        return max(self.underlying_set())
+    
+    def decoration(self):
+        l = self.length()
+        m = self.maximum()
+        return l - self.colored_sequence.index(self.maximum())
+    
+    def anchor(self):
+        return min(self.underlying_set)
+    
+    def sorted_list(self):
+        return sorted(self.underlying_set())
+    
+    def lowest_red(self):
+        return self.colored_sequence[0]
+    
+    def highest_blue(self):
+        return self.sorted_list()[self.decoration()-1]
+
+    def regular_insert(self, x):
+        if x < self.highest_blue:
+            return Family(self.underlying_set|{x}, self.decoration+1)
+        else:
+            return Family(self.underlying_set|{x}, self.decoration)
+
+    def is_singlet(self):
+        if len(self.underlying_set) == 1:
+            if self.decoration != 0:
+                raise Exception('singlet has no descent or ascent')
+            return True
+        else:
+            return False
+
+    def remove(self,x):
+        self.colored_sequence.remove(x)
+
+class FamilyRegistry:
+    def __init__(self, listOfFamilies):
+        self.registry = listOfFamilies
+
+    def underlying_set(self):
+        foo = [f.underlying_set for f in self.registry]
+        return set().union(*foo)
+
+    def registry_to_permutation(self):
+        n = max(self.underlying_set())
+        R = self.registry
+        for i in range(len(R)):
+            if n in R[i]:
+                max_index = i
+                break
+        F = R[max_index]
+        # Case A:
+        if len(F) == 1:
+            if max_index != len(R):
+                raise Exception('Sorry, singlet of the max number should be at the end')
+            R.pop()
+            return registry_to_permutation(FamilyRegistry(R))+[n]
+
+        # Case C:
+        if len(F) > 2:
+            index_of_n_in_F = F.index(n)
+            friend_of_n = F[index_of_n_in_F+1]
+            F = F.remove(n)
+            R[max_index] = F
+
+        if len(F) == 2:
+            friend_of_n = F[1]
+            if max_index == 0 or friend_of_n > min(R[max_index-1]):
+                slid_right = max_index
+                while slid_right < len(R)-1:
+                    if friend_of_n < min(R[slid_right+1]):
+                        slid_right += 1
+                    else:
+                        break
+                if slid_right == len(R):
+                    # Case B
+                    R.pop(max_index)
+                    R = R + Family([friend_of_n])
+
+                else:
+                    # Case E
+                    R.pop(max_index)
+                    R[slid_right+1] = R[slid_right+1].regular_insert(friend_of_n)
+
+            else:
+                # Case D
+                slid_left = max_index
+                while slid_left > 0:
+                    if friend_of_n < min(R[slid_left-1]):
+                        slid_left -= 1
+                    else:
+                        break
+                N = R[slid_left+1].regular_insert(friend_of_n)
+                R[max_index] = N
+                R.pop(slid_left+1)
+
+        pi = registry_to_permutation(FamilyRegistry(R))
         index_of_friend_in_pi = pi.index(friend_of_n)
         return pi.insert(index_of_friend_in_pi-1, n)
-    # Case B:
-    TODO
+
+def permutation_to_registry(w):
+    n = max(w)
+    max_index = w.index(n)
+    if max_index == len(w):
+        # Case A
+        w.remove(n)
+        R = permutation_to_registry(w)
+        return FamilyRegistry(R+[Family([n])])
+    m = w[max_index+1] # friend of n
+    w.remove(n)
+    R = permutation_to_registry(w).registry
+    for i in len(R):
+        if m in R[i]:
+            index_of_m = i
+            break
+    F = R[index_of_m]
+    # Case B and C
+    if m == F.highest_blue():
+        F = F.regular_insert(n)
+        R[index_of_m] = F
+    else:
+        N = Family([n,m])
+        # Case D
+        if m == F.anchor():
+            R[index_of_m] = N
+            slid_left = index_of_m
+            while slid_left > 0:
+                if m < min(R[slid_left-1]):
+                    slid_left -= 1
+                else:
+                    break
+            F.remove(m)
+            R.insert(slid_left, F)
+        # Case E
+        else:
+            F.remove(m)
+            R[index_of_m] = F
+            slid_left = index_of_m
+            while slid_left > 0:
+                if m < min(R[slid_left-1]):
+                    slid_left -= 1
+                else:
+                    break
+            R.insert(slid_left, N)
+
+    return FamilyRegistry(R)
+
