@@ -19,7 +19,7 @@ class AlcovedPolytope:
 		foo = self.fundamental_coweights.list().append(self.rho)
 		return sum([i for i in foo if self.is_member(coweight-i)])
 
-def i_order_eq(i,n,a,b):
+def i_order_leq(i,n,a,b):
 	if i <= a and a <= b:
 		return True
 	if i <= a and b <= i-1:
@@ -30,18 +30,21 @@ def i_order_eq(i,n,a,b):
 
 class DecoratedPermutation:
 	def __init__(self, pi, col):
-		self.permutation = pi
+		self.permutation = Permutation(pi)
 		self.n = len(pi)
-		self.k = None
 		self.color = col
-		self.fixed_points = pi.fixed_points()
-
+		self.k = -1
+		
+	def fixed_points(self): 
+		return self.permutation.fixed_points()
+	
 	def weak_excedance(self,i):
 		wei = set()
-		for j in range(n):
-			if j not in self.fixed_points and i_order_eq(i,n,j,self.permutation(j)):
+		fp = self.fixed_points()
+		for j in range(1,self.n+1):
+			if (j not in fp) and i_order_leq(i,self.n,j,self.permutation(j)):
 				wei.add(j)
-			if j in self.fixed_points and self.color[j] == 1:
+			if j in fp and self.color[j] == 1:
 				wei.add(j)
 		self.k = len(wei)
 		return wei
@@ -51,10 +54,20 @@ class GrassmannNecklace:
 		self.n = len(I)
 		self.k = len(I[0])
 		self.necklace = I
-		self.sorted_necklace = None
+		self.i_sorted_necklace = []
 
-def DP_tp_GN(dp):
-	return [dp.weak_excedance(i) for i in range(dp.n)]
+	def i_sort(self):
+		I = self.necklace
+		n = self.n
+		temp = []
+		for i in range(n):
+			foo = sorted([(j-i)%n for j in I[i]])
+			temp.append([(j+i)%n if (j+i)%n != 0 else n for j in foo])
+		self.i_sorted_necklace = temp
+		return temp
+
+def DP_to_GN(dp):
+	return GrassmannNecklace([dp.weak_excedance(i) for i in range(1,dp.n+1)])
 
 def GN_to_DP(gn):
 	n = gn.n
@@ -71,47 +84,51 @@ def GN_to_DP(gn):
 		else:
 			w.append(I[i] - I[(i+1)%n])
 			col.append(0)
+	return DecoratedPermutation(w, col)
 
-def i_sort(self):
-	I = self.necklace
-	n = self.n
-	temp = []
-	for i in range(n):
-		foo = sorted([(j-i)%n for j in I[i]])
-		temp.append(((j+i)%n for j in foo))
-	self.sorted_necklace = temp
-	return temp
+def constant_of_SR(eq):
+	return eq.polynomial(ZZ).constant_coefficient()
 
-def GenerateMatrix(equsys, vs):
+def extract_coefficients(eq, vs):
+	return [constant_of_SR(eq)] + [eq.coefficient(v) for v in vs]
+
+def GenerateMatrix(eqsys, vs):
 	A = []
-	for eq in equsys:
+	for eq in eqsys:
+		RHS = eq.rhs()
+		LHS = eq.lhs()
 		if eq.operator() == (x <= 0).operator() or eq.operator() == (x < 0).operator():
-			A.append((equ.rhs())+(-equ.lhs().coefficient(v) for v in vs))
+			foo1 = RHS - LHS
+			A.append(extract_coefficients(foo1, vs))
 		if eq.operator() == (x >= 0).operator() or eq.operator() == (x > 0).operator():
-			A.append((-equ.rhs())+(equ.lhs().coefficient(v) for v in vs))
+			foo2 = LHS - RHS
+			A.append(extract_coefficients(foo2, vs))
 		if eq.operator() == (x == 0).operator():
-			A.append((-equ.rhs())+(equ.lhs().coefficient(v) for v in vs))
-			A.append((equ.rhs())+(-equ.lhs().coefficient(v) for v in vs))
-	return A
+			foo1 = RHS - LHS
+			foo2 = LHS - RHS
+			A.append(extract_coefficients(foo1, vs))
+			A.append(extract_coefficients(foo2, vs))
+	return matrix(QQ, A)
 
 def GN_to_ineqs(gn):
 	n = gn.n
-	gn.i_sort()
-	I = gn.sorted_necklace
+	I = gn.i_sort()
 	k = gn.k
 	ineqs = []
-	v = [var('x%d' % i) for i in range(n)]
-	ineqs.append(sum([var('x%d' % i) for i in range(n-1)] <= k))
-	ineqs.append(sum([var('x%d' % i) for i in range(n-1)] >= k-1))
-	for i in range(n-1):
-		ineqs.append(var('xi') >= 0)
-	for i in range(n):
-		for j in range(k):
-			ineqs.append(sum([var('x%d' %i) for i in range(i,I[i][j])] <= j-1))
+	v = [var('x%d' % i) for i in range(1,n+1)]
+	ineqs.append(sum(v) == k)
+	for xi in v:
+		ineqs.append(xi >= 0)
+		ineqs.append(xi <= 1)
+	for i in range(1,n+1):
+		for j in (1..k):
+			if I[i-1][j-1] - i > j-1:
+				ineqs.append(sum([var('x%d' %i) for i in range(i,I[i-1][j-1])]) <= j-1)
 	return ineqs, v
 
 class PositroidPolytope:
 	def __init__(self, gn):
 		self.necklace = gn
-		self.inequalities, self.variables = GN_to_ineqs(gn)
-		self.polytope = Polyhedron(ineqs = [GenerateMatrix(self.inequalities, self.variables)])
+		self.ineqalities, self.variables = GN_to_ineqs(gn)
+		A = GenerateMatrix(self.ineqalities, self.variables)
+		self.polytope = Polyhedron(ieqs = A)
