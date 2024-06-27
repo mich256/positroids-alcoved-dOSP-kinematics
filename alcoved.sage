@@ -1,22 +1,25 @@
 class AlcovedPolytope:
 	def __init__(self, R, BoundaryParameters):
 		self.root_system = R
+		self.space = R.root_lattice()
 		self.boundaries = BoundaryParameters
-		self.fundamental_coweights = R.coweight_lattice().basis()
-		self.rho = sum(self.fundamental_coweights)
-		self.dual_Coxeter_no = R.root_lattice().highest_root().dot_product(self.rho)+1
+		self.fundamental_coweights = R.coweight_space().fundamental_weights()
+		# the coweights are indexed from 1, not from 0
+		self.simple_roots = self.space.simple_roots()
+		self.highest_root = self.space.highest_root()
+		self.structure_constants = [w.scalar(self.highest_root) for w in self.fundamental_coweights]
+		self.dual_Coxeter_no = 1+sum(self.structure_constants)
+		self.quotient_basis = [self.fundamental_coweights[i]/self.dual_Coxeter_no for i in R.index_set()]
 		
-	def is_member(self, coweight):
-		for key, value in self.boundaries:
-			foo = coweight.dot_product(key)
+	def is_member(self, x):
+		for key,value in self.boundaries:
+			foo = x.scalar(key)
 			if foo < value[0] or foo > value[1]:
 				return False
 		return True
 
 	def cover(self, coweight):
-		if self.is_member(coweight) == False:
-			raise Exception('coweight is not in the alcoved polytope')
-		foo = self.fundamental_coweights.list().append(self.rho)
+		foo = self.quotient_basis
 		return sum([i for i in foo if self.is_member(coweight-i)])
 
 def i_order_leq(i,n,a,b):
@@ -62,7 +65,7 @@ class GrassmannNecklace:
 		temp = []
 		for i in range(n):
 			foo = sorted([(j-i)%n for j in I[i]])
-			temp.append([(j+i)%n if (j+i)%n != 0 else n for j in foo])
+			temp.append(tuple([(j+i)%n if (j+i)%n != 0 else n for j in foo]))
 		self.i_sorted_necklace = temp
 		return temp
 
@@ -108,7 +111,7 @@ def GenerateMatrix(eqsys, vs):
 			foo2 = LHS - RHS
 			A.append(extract_coefficients(foo1, vs))
 			A.append(extract_coefficients(foo2, vs))
-	return matrix(QQ, A)
+	return matrix(ZZ, A)
 
 def GN_to_ineqs(gn):
 	n = gn.n
@@ -126,9 +129,19 @@ def GN_to_ineqs(gn):
 				ineqs.append(sum([var('x%d' %i) for i in range(i,I[i-1][j-1])]) <= j-1)
 	return ineqs, v
 
-class PositroidPolytope:
+class Positroid:
 	def __init__(self, gn):
 		self.necklace = gn
 		self.ineqalities, self.variables = GN_to_ineqs(gn)
+		self.n = len(self.variables)
+		self.dimension = self.n-1
+		self.k = gn.k
 		A = GenerateMatrix(self.ineqalities, self.variables)
-		self.polytope = Polyhedron(ieqs = A)
+		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=ZZ)
+		self.projected_polytope = self.polytope.affine_hull_projection()
+
+	def bases(self):
+		return {tuple([i+1 for i in range(self.n) if v[i] != 0]) for v in self.polytope.vertices()}
+
+# write self.polytope as an alcoved polytope and then write a method that generate the cover statistic for all alcoves
+
