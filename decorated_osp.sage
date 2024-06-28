@@ -59,10 +59,13 @@ def no_hypersimplicial_dosp(n,k):
 class Family:
     def __init__(self, *args):
         if len(args) == 1:
-            self.colored_sequence = args[0]
+            self.colored_sequence = list(args[0])
         if len(args) == 2:
             t = sorted(args[0])
             self.colored_sequence = t[args[1]:]+list(reversed(t[0:args[1]]))
+
+    def __str__(self):
+        return str(self.colored_sequence)
 
     def underlying_set(self):
         return set(self.colored_sequence)
@@ -71,12 +74,17 @@ class Family:
         return max(self.underlying_set())
     
     def decoration(self):
-        l = self.length()
+        l = len(self.colored_sequence)-1
+        if l == 0:
+            return 1
         m = self.maximum()
         return l - self.colored_sequence.index(self.maximum())
+
+    def __repr__(self):
+        return str(self.underlying_set()) + '_' + str(self.decoration())
     
     def anchor(self):
-        return min(self.underlying_set)
+        return min(self.underlying_set())
     
     def sorted_list(self):
         return sorted(self.underlying_set())
@@ -88,10 +96,10 @@ class Family:
         return self.sorted_list()[self.decoration()-1]
 
     def regular_insert(self, x):
-        if x < self.highest_blue:
-            return Family(self.underlying_set|{x}, self.decoration+1)
+        if x < self.highest_blue():
+            return Family(self.underlying_set()|{x}, self.decoration()+1)
         else:
-            return Family(self.underlying_set|{x}, self.decoration)
+            return Family(self.underlying_set()|{x}, self.decoration())
 
     def is_singlet(self):
         if len(self.underlying_set) == 1:
@@ -108,80 +116,37 @@ class FamilyRegistry:
     def __init__(self, listOfFamilies):
         self.registry = listOfFamilies
 
+    def __repr__(self):
+        return 'Registry '+ str(self.registry)
+
+    def __str__(self):
+        return str(self.registry)
+
     def underlying_set(self):
-        foo = [f.underlying_set for f in self.registry]
+        foo = [f.underlying_set() for f in self.registry]
         return set().union(*foo)
 
-    def registry_to_permutation(self):
-        n = max(self.underlying_set())
-        R = self.registry
-        for i in range(len(R)):
-            if n in R[i]:
-                max_index = i
-                break
-        F = R[max_index]
-        # Case A:
-        if len(F) == 1:
-            if max_index != len(R):
-                raise Exception('Sorry, singlet of the max number should be at the end')
-            R.pop()
-            return registry_to_permutation(FamilyRegistry(R))+[n]
 
-        # Case C:
-        if len(F) > 2:
-            index_of_n_in_F = F.index(n)
-            friend_of_n = F[index_of_n_in_F+1]
-            F = F.remove(n)
-            R[max_index] = F
-
-        if len(F) == 2:
-            friend_of_n = F[1]
-            if max_index == 0 or friend_of_n > min(R[max_index-1]):
-                slid_right = max_index
-                while slid_right < len(R)-1:
-                    if friend_of_n < min(R[slid_right+1]):
-                        slid_right += 1
-                    else:
-                        break
-                if slid_right == len(R):
-                    # Case B
-                    R.pop(max_index)
-                    R = R + Family([friend_of_n])
-
-                else:
-                    # Case E
-                    R.pop(max_index)
-                    R[slid_right+1] = R[slid_right+1].regular_insert(friend_of_n)
-
-            else:
-                # Case D
-                slid_left = max_index
-                while slid_left > 0:
-                    if friend_of_n < min(R[slid_left-1]):
-                        slid_left -= 1
-                    else:
-                        break
-                N = R[slid_left+1].regular_insert(friend_of_n)
-                R[max_index] = N
-                R.pop(slid_left+1)
-
-        pi = registry_to_permutation(FamilyRegistry(R))
-        index_of_friend_in_pi = pi.index(friend_of_n)
-        return pi.insert(index_of_friend_in_pi-1, n)
 
 def permutation_to_registry(w):
+    if len(w) == 1:
+        return FamilyRegistry([Family(w)])
     n = max(w)
     max_index = w.index(n)
-    if max_index == len(w):
+    if max_index == len(w)-1:
         # Case A
+        w = list(w)
         w.remove(n)
+        w = Permutation(w)
         R = permutation_to_registry(w)
-        return FamilyRegistry(R+[Family([n])])
+        return FamilyRegistry(R.registry+[Family([n])])
     m = w[max_index+1] # friend of n
+    w = list(w)
     w.remove(n)
+    w = Permutation(w)
     R = permutation_to_registry(w).registry
-    for i in len(R):
-        if m in R[i]:
+    for i in range(len(R)):
+        if m in R[i].underlying_set():
             index_of_m = i
             break
     F = R[index_of_m]
@@ -196,7 +161,7 @@ def permutation_to_registry(w):
             R[index_of_m] = N
             slid_left = index_of_m
             while slid_left > 0:
-                if m < min(R[slid_left-1]):
+                if m < min(R[slid_left-1].colored_sequence):
                     slid_left -= 1
                 else:
                     break
@@ -208,7 +173,7 @@ def permutation_to_registry(w):
             R[index_of_m] = F
             slid_left = index_of_m
             while slid_left > 0:
-                if m < min(R[slid_left-1]):
+                if m < min(R[slid_left-1].colored_sequence):
                     slid_left -= 1
                 else:
                     break
