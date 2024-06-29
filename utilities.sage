@@ -30,6 +30,6 @@ def fam_reg_cover(n,k):
 	d = perm_cover(n,k)
 	for k in d.keys():
 		foo.setdefault(k,[])
-		for v in d.values():
+		for v in d[k]:
 			foo[k].append(permutation_to_registry(v))
 	return foo
