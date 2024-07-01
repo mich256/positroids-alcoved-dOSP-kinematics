@@ -12,7 +12,7 @@ class AlcovedPolytope:
 		self.quotient_basis = [self.fundamental_coweights[i]/self.dual_Coxeter_no for i in R.index_set()]
 		
 	def is_member(self, x):
-		for key,value in self.boundaries:
+		for key,value in self.boundaries.items():
 			foo = x.scalar(key)
 			if foo < value[0] or foo > value[1]:
 				return False
@@ -20,7 +20,32 @@ class AlcovedPolytope:
 
 	def cover(self, coweight):
 		foo = self.quotient_basis
-		return sum([i for i in foo if self.is_member(coweight-i)])
+		return len([i for i in foo if self.is_member(coweight-i)])
+
+def search(AP):
+	temp = []
+	n = len(AP.root_system.index_set())
+	bar = n
+	while True:
+		halt = True
+		for c in Compositions(bar, length=n):
+			x = sum([(c[i]-1)*AP.quotient_basis[i] for i in range(n)])
+			arb = True
+			for key,value in AP.boundaries.items():
+				foo = x.scalar(key)
+				if foo > value[1]:
+					arb = False
+					break
+				elif foo < value[0]:
+					arb = False
+					halt = False
+					break
+			if arb:
+				halt = False
+				temp.append((AP.cover(x),x))
+		if halt:
+			return temp
+		bar += 1
 
 def i_order_leq(i,n,a,b):
 	if i <= a and a <= b:
@@ -47,7 +72,7 @@ class DecoratedPermutation:
 		for j in range(1,self.n+1):
 			if (j not in fp) and i_order_leq(i,self.n,j,self.permutation(j)):
 				wei.add(j)
-			if j in fp and self.color[j] == 1:
+			if j in fp and self.color[j-1] == 1:
 				wei.add(j)
 		self.k = len(wei)
 		return wei
@@ -100,13 +125,13 @@ def GenerateMatrix(eqsys, vs):
 	for eq in eqsys:
 		RHS = eq.rhs()
 		LHS = eq.lhs()
-		if eq.operator() == (x <= 0).operator() or eq.operator() == (x < 0).operator():
+		if eq.operator() == (var('t') <= 0).operator() or eq.operator() == (var('t') < 0).operator():
 			foo1 = RHS - LHS
 			A.append(extract_coefficients(foo1, vs))
-		if eq.operator() == (x >= 0).operator() or eq.operator() == (x > 0).operator():
+		if eq.operator() == (var('t') >= 0).operator() or eq.operator() == (var('t') > 0).operator():
 			foo2 = LHS - RHS
 			A.append(extract_coefficients(foo2, vs))
-		if eq.operator() == (x == 0).operator():
+		if eq.operator() == (var('t') == 0).operator():
 			foo1 = RHS - LHS
 			foo2 = LHS - RHS
 			A.append(extract_coefficients(foo1, vs))
@@ -129,19 +154,41 @@ def GN_to_ineqs(gn):
 				ineqs.append(sum([var('x%d' %i) for i in range(i,I[i-1][j-1])]) <= j-1)
 	return ineqs, v
 
+def GN_to_bdp(gn):
+	bdp = {}
+	I = gn.i_sort()
+	n = gn.n
+	k = gn.k
+	R = RootSystem(['A', n-1])
+	alpha = R.root_lattice().simple_roots()
+	theta = R.root_lattice().highest_root()
+	for i in R.index_set():
+		if i != 1:
+			bdp[alpha[i]-alpha[i-1]] = [0,1]
+		else:
+			bdp[alpha[1]] = [0,1]
+	bdp[theta] = [k,k]
+	for i in (1..n):
+		for j in (1..k):
+			if I[i-1][j-1] - i > j-1:
+				if i == 1:
+					bdp[alpha[I[i-1][j-1]-1]] = [0, j-1]
+				else:
+					bdp[alpha[I[i-1][j-1]-1] - alpha[i-1]] = [0,j-1]
+	return bdp
+
 class Positroid:
 	def __init__(self, gn):
 		self.necklace = gn
-		self.ineqalities, self.variables = GN_to_ineqs(gn)
+		self.inequalities, self.variables = GN_to_ineqs(gn)
 		self.n = len(self.variables)
 		self.dimension = self.n-1
 		self.k = gn.k
-		A = GenerateMatrix(self.ineqalities, self.variables)
+		A = GenerateMatrix(self.inequalities, self.variables)
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=ZZ)
 		self.projected_polytope = self.polytope.affine_hull_projection()
+		self.root_system = RootSystem(['A', self.n])
+		self.alcoved = AlcovedPolytope(self.root_system, GN_to_bdp(self.necklace))
 
 	def bases(self):
 		return {tuple([i+1 for i in range(self.n) if v[i] != 0]) for v in self.polytope.vertices()}
-
-# write self.polytope as an alcoved polytope and then write a method that generate the cover statistic for all alcoves
-

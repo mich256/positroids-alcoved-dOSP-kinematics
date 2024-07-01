@@ -330,7 +330,6 @@ def hypersimplicial_dosp(n,k):
                 foo = FamilyRegistry(osp,c)
                 bar = foo.winding()[1]
                 temp.setdefault(bar, [])
-                foo = registry_to_permutation(foo)
                 temp[bar].append(foo)
     return temp
 

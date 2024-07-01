@@ -30,6 +30,20 @@ def cover(w):
 	else:
 		return temp+1
 
+def ncov(w):
+	w = Permutation(w).inverse()
+	n = len(w)
+	foo = [i for i in range(1,n) if w(i+1)>w(i)+1]
+	return len(foo)
+
+def perm_ncov(n,k):
+	temp = {}
+	for w in perm_cdes(n,k):
+		c = ncov(w)
+		temp.setdefault(c, [])
+		temp[c].append(w)
+	return temp
+
 def perm_icdes(n,k):
 	cycle = list(range(2,n+1))
 	cycle.append(1)
@@ -50,7 +64,7 @@ def perm_cover(n,k):
 	for w in perm_ides(n-1,k-1):
 		c = cover(w)
 		temp.setdefault(c, [])
-		temp[c].append(w)
+		temp[c].append(w.inverse())
 	return temp
 
 def no_perm_cover(n,k):
