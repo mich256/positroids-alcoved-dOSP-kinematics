@@ -1,7 +1,8 @@
 def CyclicOrderedSetPartitions(n):
     temp = []
     for c in OrderedSetPartitions(n):
-        if 1 in c[0]:
+        m = len(c)
+        if 1 in c[m-1]:
             temp.append(c)
     return temp
 
@@ -155,13 +156,14 @@ class FamilyRegistry:
             for i in range(len(self.registry)):
                 self.osp.append(self.registry[i].underlying_set())
                 self.decoration.append(self.registry[i].decoration())
+            self.decoration = Composition(self.decoration)
             self.osp = OrderedSetPartition(self.osp)
         if len(args) == 2:
             if len(args[0]) != len(args[1]):
                 raise Exception('lengths shall be equal')
             else:
                 self.osp = args[0]
-                self.decoration = args[1]
+                self.decoration = Composition(args[1])
                 self.registry = []
                 for i in range(len(args[0])):
                     self.registry.append(Family(args[0][i], args[1][i]))
@@ -191,6 +193,12 @@ class FamilyRegistry:
                 l = list(range(w[i],m))+list(range(w[(i+1)%n]))
                 wind.append(sum([self.decoration[j] for j in l]))
         return wind, sum(wind) // k
+
+    def to_perm(self):
+        temp = []
+        for f in self.registry:
+            temp += f.colored_sequence
+        return temp
 
 def permutation_to_registry(w):
     if len(w) == 1:
@@ -245,6 +253,67 @@ def permutation_to_registry(w):
 
     return FamilyRegistry(R)
 
+def registry_to_permutation(R):
+    n = max(R.underlying_set())
+    R = R.registry
+    if len(R) == 0 or len(R) == 1:
+        return R[0].colored_sequence
+    for i in range(len(R)):
+        if len(R[i].colored_sequence) == 1:
+            if i != len(R) - 1:
+                return registry_to_permutation(FamilyRegistry(R[:i]))+R[i].colored_sequence+registry_to_permutation(FamilyRegistry(R[i+1:]))
+            else:
+                return registry_to_permutation(FamilyRegistry(R[:i]))+R[i].colored_sequence
+    for i in range(len(R)):
+        if n in R[i].underlying_set():
+            max_index = i
+            break
+    F = R[max_index]
+    # Case A:
+    if len(F.colored_sequence) == 1:
+        if max_index != len(R)-1:
+            raise Exception('Sorry, singlet of the max number should be at the end')
+        R.pop()
+        return registry_to_permutation(FamilyRegistry(R))+[n]
+    # Case C:
+    elif len(F.colored_sequence) > 2:
+        index_of_n_in_F = F.colored_sequence.index(n)
+        friend_of_n = F.colored_sequence[index_of_n_in_F+1]
+        F.remove(n)
+        R[max_index] = F
+    elif len(F.colored_sequence) == 2:
+        friend_of_n = F.colored_sequence[1]
+        if max_index == 0 or friend_of_n > min(R[max_index-1].underlying_set()):
+            slid_right = max_index
+            while slid_right < len(R)-1:
+                if friend_of_n < min(R[slid_right+1].underlying_set()):
+                    slid_right += 1
+                else:
+                    break
+            if slid_right == len(R)-1:
+                # Case B
+                R.pop(max_index)
+                R.append(Family([friend_of_n]))
+            else:
+                # Case E
+                R[slid_right+1] = R[slid_right+1].regular_insert(friend_of_n)
+                R.pop(max_index)
+        else:
+            # Case D
+            slid_left = max_index
+            while slid_left > 0:
+                if friend_of_n < min(R[slid_left-1].underlying_set()):
+                    slid_left -= 1
+                else:
+                    break
+            N = R[slid_left].regular_insert(friend_of_n)
+            R[max_index] = N
+            R.pop(slid_left)
+    pi = registry_to_permutation(FamilyRegistry(R))
+    index_of_friend_in_pi = pi.index(friend_of_n)
+    pi.insert(index_of_friend_in_pi, n)
+    return pi
+
 def hypersimplicial_dosp(n,k):
     temp = {}
     for osp in CyclicOrderedSetPartitions(n):
@@ -261,6 +330,7 @@ def hypersimplicial_dosp(n,k):
                 foo = FamilyRegistry(osp,c)
                 bar = foo.winding()[1]
                 temp.setdefault(bar, [])
+                foo = registry_to_permutation(foo)
                 temp[bar].append(foo)
     return temp
 
