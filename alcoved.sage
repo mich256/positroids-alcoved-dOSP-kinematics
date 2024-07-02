@@ -26,7 +26,8 @@ def search(AP):
 	temp = []
 	n = len(AP.root_system.index_set())
 	bar = n
-	while bar <= 3*n:
+	while True:
+		halt = True
 		for c in Compositions(bar, length=n):
 			x = 0
 			for i in range(n):
@@ -35,17 +36,30 @@ def search(AP):
 				else:
 					x += (c[i]-1)*AP.quotient_basis[i]
 			if x == 0:
-				continue
+				if bar == n:
+					halt = False
+					continue
+				else:
+					continue
 			arb = True
+			h1 = False
 			for key,value in AP.boundaries.items():
 				foo = x.scalar(key)
-				if foo > value[1] or foo < value[0] or foo == value[0] or foo == value[1]:
+				if foo > value[1]:
+					h1 = True
 					arb = False
 					break
+				if foo < value[0]:
+					arb = False
+					break
+				if  foo == value[0] or foo == value[1]:
+					arb = False
+			halt = halt and h1
 			if arb:
 				temp.append((AP.cover(x),x))
+		if halt:
+			return temp
 		bar += 1
-	return temp
 
 def i_order_leq(i,n,a,b):
 	if i <= a and a <= b:
