@@ -19,33 +19,33 @@ class AlcovedPolytope:
 		return True
 
 	def cover(self, coweight):
-		foo = self.quotient_basis
+		foo = self.fundamental_coweights
 		return len([i for i in foo if self.is_member(coweight-i)])
 
 def search(AP):
 	temp = []
 	n = len(AP.root_system.index_set())
 	bar = n
-	while True:
-		halt = True
+	while bar <= 3*n:
 		for c in Compositions(bar, length=n):
-			x = sum([(c[i]-1)*AP.quotient_basis[i] for i in range(n)])
+			x = 0
+			for i in range(n):
+				if c[i]-1 == AP.dual_Coxeter_no:
+					break
+				else:
+					x += (c[i]-1)*AP.quotient_basis[i]
+			if x == 0:
+				continue
 			arb = True
 			for key,value in AP.boundaries.items():
 				foo = x.scalar(key)
-				if foo > value[1]:
+				if foo > value[1] or foo < value[0] or foo == value[0] or foo == value[1]:
 					arb = False
-					break
-				elif foo < value[0]:
-					arb = False
-					halt = False
 					break
 			if arb:
-				halt = False
 				temp.append((AP.cover(x),x))
-		if halt:
-			return temp
 		bar += 1
+	return temp
 
 def i_order_leq(i,n,a,b):
 	if i <= a and a <= b:
@@ -161,15 +161,14 @@ def GN_to_bdp(gn):
 	k = gn.k
 	R = RootSystem(['A', n-1])
 	alpha = R.root_lattice().simple_roots()
-	theta = R.root_lattice().highest_root()
 	for i in R.index_set():
 		if i != 1:
 			bdp[alpha[i]-alpha[i-1]] = [0,1]
 		else:
 			bdp[alpha[1]] = [0,1]
-	bdp[theta] = [k,k]
+	bdp[alpha[n-1]] = [k-1,k]
 	for i in (1..n):
-		for j in (1..k):
+		for j in (2..k):
 			if I[i-1][j-1] - i > j-1:
 				if i == 1:
 					bdp[alpha[I[i-1][j-1]-1]] = [0, j-1]
