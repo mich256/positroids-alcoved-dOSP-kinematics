@@ -1,65 +1,57 @@
+def fundamental_coweights(R):
+	return R.coweight_space().basis()
+
+def positive_roots(R):
+	theta = R.root_lattice().highest_root()
+	coeff = theta.coefficients()
+	n = len(R.index_set())
+	sr = R.root_lattice().simple_roots()
+	def helper(i):
+		if i == n:
+			return [j*sr[n] for j in (1..coeff[n-1])]
+		foo = []
+		for j in (1..coeff[i-1]):
+			foo.append(j*sr[i])
+		for k in helper(i+1):
+			for j in (1..coeff[i-1]):
+				foo.append(j*sr[i] + k)
+		return foo
+	bar = []
+	for i in R.index_set():
+		for j in helper(i):
+			bar.append(j)
+	return bar
+
 class AlcovedPolytope:
 	def __init__(self, R, BoundaryParameters):
 		self.root_system = R
-		self.space = R.root_lattice()
 		self.boundaries = BoundaryParameters
-		self.fundamental_coweights = R.coweight_space().fundamental_weights()
 		# the coweights are indexed from 1, not from 0
-		self.simple_roots = self.space.simple_roots()
-		self.highest_root = self.space.highest_root()
-		self.structure_constants = [w.scalar(self.highest_root) for w in self.fundamental_coweights]
-		self.dual_Coxeter_no = 1+sum(self.structure_constants)
-		self.quotient_basis = [self.fundamental_coweights[i]/self.dual_Coxeter_no for i in R.index_set()]
+		self.quotient_basis = [fundamental_coweights(R)[i]/R.cartan_type().dual_coxeter_number() for i in R.index_set()]
 		
 	def is_member(self, x):
 		for key,value in self.boundaries.items():
 			foo = x.scalar(key)
-			if foo < value[0] or foo > value[1]:
+			if foo <= value[0] or foo >= value[1]:
 				return False
+			for r in positive_roots(R):
+				if x.scalar(r).denominator() == 1:
+					return False
 		return True
 
-	def cover(self, coweight):
-		foo = self.fundamental_coweights
-		return len([i for i in foo if self.is_member(coweight-i)])
+	def cover(self, x):
+		R = self.root_system
+		foo = fundamental_coweights(R).list()
+		foo.append(sum(self.quotient_basis))
+		return len([i for i in foo if self.is_member(x-i)])
 
-def search(AP):
-	temp = []
-	n = len(AP.root_system.index_set())
-	bar = n
-	while True:
-		halt = True
-		for c in Compositions(bar, length=n):
-			x = 0
-			for i in range(n):
-				if c[i]-1 == AP.dual_Coxeter_no:
-					break
-				else:
-					x += (c[i]-1)*AP.quotient_basis[i]
-			if x == 0:
-				if bar == n:
-					halt = False
-					continue
-				else:
-					continue
-			arb = True
-			h1 = False
-			for key,value in AP.boundaries.items():
-				foo = x.scalar(key)
-				if foo > value[1]:
-					h1 = True
-					arb = False
-					break
-				if foo < value[0]:
-					arb = False
-					break
-				if  foo == value[0] or foo == value[1]:
-					arb = False
-			halt = halt and h1
-			if arb:
-				temp.append((AP.cover(x),x))
-		if halt:
-			return temp
-		bar += 1
+	def proj_cover(self,x):
+		R = self.root_system
+		foo = fundamental_coweights(R).list()
+		n = len(R.index_set())
+		for i in R.index_set():
+			foo[i-1] = foo[i-1]/(n-1) - sum(self.quotient_basis)
+		return len([i for i in foo if self.is_member(x-i)])
 
 def i_order_leq(i,n,a,b):
 	if i <= a and a <= b:
@@ -174,20 +166,15 @@ def GN_to_bdp(gn):
 	n = gn.n
 	k = gn.k
 	R = RootSystem(['A', n-1])
-	alpha = R.root_lattice().simple_roots()
+	sr = R.root_lattice().simple_roots()
+	theta = R.root_lattice().highest_root()
 	for i in R.index_set():
-		if i != 1:
-			bdp[alpha[i]-alpha[i-1]] = [0,1]
-		else:
-			bdp[alpha[1]] = [0,1]
-	bdp[alpha[n-1]] = [k-1,k]
+		bdp[sr[i]] = [0,1]
+	bdp[theta] = [k-1,k]
 	for i in (1..n):
 		for j in (2..k):
 			if I[i-1][j-1] - i > j-1:
-				if i == 1:
-					bdp[alpha[I[i-1][j-1]-1]] = [0, j-1]
-				else:
-					bdp[alpha[I[i-1][j-1]-1] - alpha[i-1]] = [0,j-1]
+				bdp[sum([sr[k] for k in (i..I[i-1][j-1]-1)])] = [0,j-1]
 	return bdp
 
 class Positroid:
@@ -200,7 +187,7 @@ class Positroid:
 		A = GenerateMatrix(self.inequalities, self.variables)
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=ZZ)
 		self.projected_polytope = self.polytope.affine_hull_projection()
-		self.root_system = RootSystem(['A', self.n])
+		self.root_system = RootSystem(['A', self.n-1])
 		self.alcoved = AlcovedPolytope(self.root_system, GN_to_bdp(self.necklace))
 
 	def bases(self):

@@ -2,16 +2,31 @@ script:
 
 load('alcoved.sage')
 
-#pi = DecoratedPermutation([3,1,6,5,2,4],[0]*6)
-pi = DecoratedPermutation([1,3,2],[0]*3)
+#pi = DecoratedPermutation([1,3,2],[0]*3)
+pi = DecoratedPermutation([3,1,6,5,2,4],[0]*6)
 G = DP_to_GN(pi)
 BDP = GN_to_bdp(G)
-R = RootSystem(['A', 2])
+R = RootSystem(['A', 5])
 Q = AlcovedPolytope(R, BDP)
-Lambdacheck = R.coweight_lattice().fundamental_weights()
-search(Q)
+
+R = RootSystem(['A',3])
+theta = R.root_space().highest_root()
+bdp = {theta: [1,2]}
+for sr in R.root_space().simple_roots():
+	bdp[sr] = [0,1]
+Q = AlcovedPolytope(R, bdp)
+qb = Q.quotient_basis
+foo = []
+for i in (1..3):
+	for j in (1..3):
+		for k in (1..3):
+			rhoh = i*qb[0]+j*qb[1]+k*qb[2]
+			if Q.is_member(rhoh):
+				foo.append(rhoh)
+foo
+
 P = Positroid(G)
 trueP = P.projected_polytope
-
 load('hstar.sage')
+trueP.volume()
 trueP.h_star_vector()
