@@ -9,6 +9,36 @@ def circular_descents(w):
 		foo.append(n)
 	return foo
 
+def cdes_ij(w, i, j):
+	if i == j:
+		return 0
+	foo = 0
+	if i < j:
+		for k in range(i,j):
+			if w(k) > w(k+1):
+				foo += 1
+		if w(j) > w(i):
+			foo += 1
+		return foo
+	if i > j:
+		n = len(w)
+		for k in range(i,n):
+			if w(k) > w(k+1):
+				foo += 1
+		if w(n) > w(1):
+			foo += 1
+		if j > 1:
+			for k in range(1,j):
+				if w(k) > w(k+1):
+					foo += 1
+		if w(j) > w(i):
+			foo += 1
+		return foo
+
+def icdes_ij(w, i, j):
+	u = w.inverse()
+	return cdes_ij(u,i,j)
+
 def ascents(w):
 	w = Permutation(w)
 	n = len(w)

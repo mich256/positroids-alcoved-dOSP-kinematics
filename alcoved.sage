@@ -38,11 +38,11 @@ def coweight_to_permutation(R, coweight):
 		count += 1
 	return Permutation(w)
 
-def permutation_to_coweight(w):
-	n = len(w)
+def permutation_to_coweight(u):
+	n = len(u)
 	R = RootSystem(['A', n-1])
 	lcheck = fundamental_coweights(R)
-	w = w.inverse()
+	w = u.inverse()
 	foo = 0
 	for i in (1..n-1):
 		foo += Rational(((w(i+1)-w(i))%n)/n) * lcheck[i]
@@ -72,7 +72,7 @@ def cdes_wrt_root(R, w, alpha):
 	foo += inv(R, w, -R_to_W(R,alpha))
 	return foo
 
-def cdes(R, w):
+def cdes_WG(R, w):
 	theta = R.root_lattice().highest_root()
 	return cdes_wrt_root(R, w, theta)
 
@@ -179,6 +179,12 @@ class GrassmannNecklace:
 		self.necklace = I
 		self.i_sorted_necklace = []
 
+	def __repr__(self):
+		return str(self.necklace)
+	
+	def __str__(self):
+		return str(self.necklace)
+
 	def i_sort(self):
 		I = self.necklace
 		n = self.n
@@ -245,8 +251,14 @@ def GN_to_ineqs(gn):
 		ineqs.append(xi <= 1)
 	for i in range(1,n+1):
 		for j in (1..k):
-			if I[i-1][j-1] - i > j-1:
-				ineqs.append(sum([var('x%d' %i) for i in range(i,I[i-1][j-1])]) <= j-1)
+			if (I[i-1][j-1]-i)%n > j-1:
+				y = 0
+				for l in range((I[i-1][j-1]-i)%n):
+					if l+i == n:
+						y += var('x%d'%n)
+					else:
+						y += var('x%d'%((l+i)%n))
+				ineqs.append(y <= j-1)
 	return ineqs, v
 
 def GN_to_bdp(gn):
@@ -254,16 +266,30 @@ def GN_to_bdp(gn):
 	I = gn.i_sort()
 	n = gn.n
 	k = gn.k
-	R = RootSystem(['A', n-1])
+	R = RootSystem(['A',n-1])
 	sr = R.root_lattice().simple_roots()
 	theta = R.root_lattice().highest_root()
 	for i in R.index_set():
 		bdp[sr[i]] = [0,1]
 	bdp[theta] = [k-1,k]
-	for i in (1..n-1):
+	for i in (1..n):
 		for j in (2..k):
 			if (I[i-1][j-1] - i)%n > j-1:
-				bdp[sum([sr[l+i] for l in range((I[i-1][j-1]-i-1)%n)])] = [0,j-1]
+				y = 0
+				for l in range((I[i-1][j-1]-i)%n):
+					if l+i == n:
+						y += -theta
+					else:
+						y += sr[(l+i)%n]
+				if y.coefficient(1) > 0:
+					bdp[y] = [0,j-1]
+				else:
+					foo = theta+y
+					if foo in bdp.keys():
+						value = bdp[foo]
+						bdp[foo] = [max(k-j+1,value[0]), min(len(foo.coefficients()),value[1])]
+					else:
+						bdp[theta+y] = [k-j+1, len(foo.coefficients())]
 	return bdp
 
 class Positroid:
@@ -299,11 +325,13 @@ class Positroid:
 		foo = 0
 		if self.is_member(w):
 			for i in w.descents():
-				#NEED This exchange to decrease cdes(u_i, u_{i+1})
 				if i == n-1 and w(i) == n:
 					continue
 				else:
-					if self.is_member(w.left_action_product(s[i])):
+					u = w.left_action_product(s[i])
+					a = w(i)
+					b = w(i+1)
+					if self.is_member(u) and icdes_ij(u,a,b) < icdes_ij(w,a,b):
 						foo += 1
 		return foo
 
