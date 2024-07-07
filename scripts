@@ -1,11 +1,12 @@
-script:
-
 load('alcoved.sage')
 
 #pi = DecoratedPermutation([1,3,2],[0]*3)
 pi = DecoratedPermutation([3,1,6,5,2,4],[0]*6)
 G = DP_to_GN(pi)
 BDP = GN_to_bdp(G)
+P = Positroid(G)
+P.cover_stats()
+P.cover_no()
 R = RootSystem(['A', 5])
 Q = AlcovedPolytope(R, BDP)
 
@@ -30,3 +31,16 @@ trueP = P.projected_polytope
 load('hstar.sage')
 trueP.volume()
 trueP.h_star_vector()
+R = RootSystem(['B',4])
+W = WeylGroup(['B',4])
+A = W.domain().simple_roots()
+w = W[5]
+alpha = R.root_space().simple_roots()[2]
+alpha = R_to_W(R,alpha)
+beta = R.root_space().roots()[6]
+inv(R,w,alpha)
+cdes(R,w)
+cdes_wrt_root(R,w,beta)
+
+w = Permutation([2,4,1,3])
+permutation_to_typeA_WeylGroup(w)

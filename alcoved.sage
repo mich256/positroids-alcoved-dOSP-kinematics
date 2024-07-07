@@ -1,3 +1,6 @@
+load('des_cover.sage')
+load('decorated_osp.sage')
+
 def fundamental_coweights(R):
 	return R.coweight_space().basis()
 
@@ -22,14 +25,113 @@ def positive_roots(R):
 			bar.append(j)
 	return bar
 
+def coweight_to_permutation(R, coweight):
+	n = len(R.index_set())
+	w = [1]+[0]*(n-1)
+	sr = R.root_lattice().simple_roots()
+	bar = 0
+	count = 2
+	for i in sr:
+		foo = coweight.scalar(i)
+		w[(bar + i)%n] = count
+		bar = bar + i
+		count += 1
+	return Permutation(w)
+
+def permutation_to_coweight(w):
+	n = len(w)
+	R = RootSystem(['A', n-1])
+	lcheck = fundamental_coweights(R)
+	w = w.inverse()
+	foo = 0
+	for i in (1..n-1):
+		foo += Rational(((w(i+1)-w(i))%n)/n) * lcheck[i]
+	return foo
+
+def R_to_W(R, alpha):
+	W = WeylGroup(R.cartan_type())
+	A = W.domain().simple_roots()
+	return sum([alpha.coefficient(i) * A[i] for i in R.index_set()])
+
+def inv(R, w, alpha):
+	W = WeylGroup(R.cartan_type())
+	A = W.domain().simple_roots()
+	if w.action(alpha).is_positive_root():
+		return 0
+	if (-w.action(alpha)).is_positive_root():
+		return 1
+	else:
+		raise Exception('neither positive nor negative')
+
+def cdes_wrt_root(R, w, alpha):
+	W = WeylGroup(R.cartan_type())
+	A = W.domain().simple_roots()
+	foo = 0
+	for i in R.index_set():
+		foo += alpha.coefficient(i) * inv(R, w, A[i])
+	foo += inv(R, w, -R_to_W(R,alpha))
+	return foo
+
+def cdes(R, w):
+	theta = R.root_lattice().highest_root()
+	return cdes_wrt_root(R, w, theta)
+
+def permutation_to_typeA_WeylGroup(w):
+	n = len(w)
+	W = WeylGroup(['A',n-1])
+	s = W.simple_reflections()
+	foo = w.reduced_word()
+	bar = W.one()
+	for i in foo:
+		bar *= s[i]
+	return bar
+
+def des_to_bin(d,n):
+	foo = [0]*n
+	for i in d:
+		foo[i-1] = 1
+	return ''.join(map(str,foo))
+
+def circuits(w):
+	n = len(w)
+	cycle = list(range(2,n+1))+[1]
+	cycle = Permutation(cycle)
+	foo = []
+	for i in range(n):
+		foo.append(des_to_bin(circular_descents(w.inverse()),n))
+		w = w.left_action_product(cycle)
+	return foo
+
+def circuits_of_WG(w):
+	#TODO
+	return
+
+def BDP_to_ieqs(R, BDP):
+	sr = R.ambient_space().simple_roots()
+	ieqs = []
+	n = R.ambient_space().dimension()
+	v = [var('x%d' % i) for i in (1..n-1)]
+	for key, value in BDP.items():
+		foo = 0
+		for i in R.index_set():
+			foo += key.coefficient(i) * sr[i]
+		ieqs.append(sum([foo[i-1] * var('x%d' %i) for i in (1..(n-1))]) >= value[0])
+		ieqs.append(sum([foo[i-1] * var('x%d' %i) for i in (1..(n-1))]) <= value[1])
+	return ieqs, v
+
+
 class AlcovedPolytope:
 	def __init__(self, R, BoundaryParameters):
 		self.root_system = R
 		self.boundaries = BoundaryParameters
 		# the coweights are indexed from 1, not from 0
 		self.quotient_basis = [fundamental_coweights(R)[i]/R.cartan_type().dual_coxeter_number() for i in R.index_set()]
-		
+		ieqs, v = BDP_to_ieqs(R, BDP)
+		A = GenerateMatrix(ieqs, v)
+		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=QQ)
+
 	def is_member(self, x):
+		R = self.root_system
 		for key,value in self.boundaries.items():
 			foo = x.scalar(key)
 			if foo <= value[0] or foo >= value[1]:
@@ -39,19 +141,6 @@ class AlcovedPolytope:
 					return False
 		return True
 
-	def cover(self, x):
-		R = self.root_system
-		foo = fundamental_coweights(R).list()
-		foo.append(sum(self.quotient_basis))
-		return len([i for i in foo if self.is_member(x-i)])
-
-	def proj_cover(self,x):
-		R = self.root_system
-		foo = fundamental_coweights(R).list()
-		n = len(R.index_set())
-		for i in R.index_set():
-			foo[i-1] = foo[i-1]/(n-1) - sum(self.quotient_basis)
-		return len([i for i in foo if self.is_member(x-i)])
 
 def i_order_leq(i,n,a,b):
 	if i <= a and a <= b:
@@ -171,10 +260,10 @@ def GN_to_bdp(gn):
 	for i in R.index_set():
 		bdp[sr[i]] = [0,1]
 	bdp[theta] = [k-1,k]
-	for i in (1..n):
+	for i in (1..n-1):
 		for j in (2..k):
-			if I[i-1][j-1] - i > j-1:
-				bdp[sum([sr[k] for k in (i..I[i-1][j-1]-1)])] = [0,j-1]
+			if (I[i-1][j-1] - i)%n > j-1:
+				bdp[sum([sr[l+i] for l in range((I[i-1][j-1]-i-1)%n)])] = [0,j-1]
 	return bdp
 
 class Positroid:
@@ -189,6 +278,51 @@ class Positroid:
 		self.projected_polytope = self.polytope.affine_hull_projection()
 		self.root_system = RootSystem(['A', self.n-1])
 		self.alcoved = AlcovedPolytope(self.root_system, GN_to_bdp(self.necklace))
+
+	def is_member(self,w):
+		x = permutation_to_coweight(w)
+		if self.alcoved.is_member(x):
+			return True
+		return False
+
+	def all_members(self):
+		foo = []
+		for w in perm_icdes(self.n,self.k):
+			if self.is_member(w):
+				foo.append(w)
+		return foo
+
+	def cover(self, s, w):
+		n = self.n
+		#P = Permutations(self.n)
+		#s = P.simple_reflections()
+		foo = 0
+		if self.is_member(w):
+			for i in w.descents():
+				#NEED This exchange to decrease cdes(u_i, u_{i+1})
+				if i == n-1 and w(i) == n:
+					continue
+				else:
+					if self.is_member(w.left_action_product(s[i])):
+						foo += 1
+		return foo
+
+	def cover_stats(self):
+		P = Permutations(self.n)
+		s = P.simple_reflections()
+		foo = {}
+		for i in range(self.n+1):
+			foo[i] = []
+		for w in self.all_members():
+			foo[self.cover(s,w)].append(w)
+		return foo
+
+	def cover_no(self):
+		foo = self.cover_stats()
+		bar = []
+		for i in range(self.n+1):
+			bar.append(len(foo[i]))
+		return bar
 
 	def bases(self):
 		return {tuple([i+1 for i in range(self.n) if v[i] != 0]) for v in self.polytope.vertices()}

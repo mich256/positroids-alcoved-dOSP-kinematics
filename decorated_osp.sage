@@ -39,6 +39,18 @@ class CyclicDecoratedOrderedSetPartition:
                 for i in range(len(args[0])):
                     self.blocks.append(Block(args[0][i], args[1][i]))
 
+    def descents(self):
+        n = self.osp.base_set_cardinality()
+        w = self.osp.to_packed_word()
+        foo = []
+        for i in range(n):
+            if w[i] > w[(i+1)%n]:
+                foo.append(i+1)
+        return foo
+
+    def number_of_descents(self):
+        return len(self.descents())
+
     def winding(self):
         n = self.osp.base_set_cardinality()
         m = len(self.osp)
@@ -93,15 +105,15 @@ class Family:
     def underlying_set(self):
         return set(self.colored_sequence)
     
-    def maximum(self):
+    def max(self):
         return max(self.underlying_set())
     
     def decoration(self):
         l = len(self.colored_sequence)-1
         if l == 0:
             return 1
-        m = self.maximum()
-        return l - self.colored_sequence.index(self.maximum())
+        m = self.max()
+        return l - self.colored_sequence.index(m)
 
     def __repr__(self):
         return str(self.underlying_set()) + '_' + str(self.decoration())
@@ -109,14 +121,14 @@ class Family:
     def anchor(self):
         return min(self.underlying_set())
     
-    def sorted_list(self):
+    def sorted(self):
         return sorted(self.underlying_set())
     
     def lowest_red(self):
         return self.colored_sequence[0]
     
     def highest_blue(self):
-        return self.sorted_list()[self.decoration()-1]
+        return self.sorted()[self.decoration()-1]
 
     def regular_insert(self, x):
         if len(self.colored_sequence) == 1:
@@ -177,6 +189,18 @@ class FamilyRegistry:
     def underlying_set(self):
         foo = [f.underlying_set() for f in self.registry]
         return set().union(*foo)
+
+    def descents(self):
+        n = self.osp.base_set_cardinality()
+        w = self.osp.to_packed_word()
+        foo = []
+        for i in range(n):
+            if w[i] > w[(i+1)%n]:
+                foo.append(i+1)
+        return foo
+
+    def number_of_descents(self):
+        return len(self.descents())
 
     def winding(self):
         n = self.osp.base_set_cardinality()

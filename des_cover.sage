@@ -9,6 +9,15 @@ def circular_descents(w):
 		foo.append(n)
 	return foo
 
+def ascents(w):
+	w = Permutation(w)
+	n = len(w)
+	foo = []
+	for i in range(1,n):
+		if w(i) < w(i+1):
+			foo.append(i)
+	return foo
+
 def inverse_circular_descents(w):
 	return circular_descents(w.inverse())
 
@@ -18,7 +27,8 @@ def cdes(w):
 
 def icdes(w):
 	w = Permutation(w)
-	return cdes(w.inverse())
+	u = w.inverse()
+	return cdes(u)
 
 def cover(w):
 	w = Permutation(w)
