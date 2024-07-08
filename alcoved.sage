@@ -98,7 +98,8 @@ def circuits(w):
 	cycle = Permutation(cycle)
 	foo = []
 	for i in range(n):
-		foo.append(des_to_bin(circular_descents(w.inverse()),n))
+		#foo.append(des_to_bin(circular_descents(w.inverse()),n))
+		foo.append(frozenset(circular_descents(w.inverse())))
 		w = w.left_action_product(cycle)
 	return foo
 
@@ -126,7 +127,7 @@ class AlcovedPolytope:
 		self.boundaries = BoundaryParameters
 		# the coweights are indexed from 1, not from 0
 		self.quotient_basis = [fundamental_coweights(R)[i]/R.cartan_type().dual_coxeter_number() for i in R.index_set()]
-		ieqs, v = BDP_to_ieqs(R, BDP)
+		ieqs, v = BDP_to_ieqs(R, BoundaryParameters)
 		A = GenerateMatrix(ieqs, v)
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=QQ)
 
@@ -158,8 +159,24 @@ class DecoratedPermutation:
 		self.color = col
 		self.k = -1
 		
-	def fixed_points(self): 
+	def fixed_points(self):
 		return self.permutation.fixed_points()
+
+	def __repr__(self):
+		fp = self.fixed_points()
+		foo = ''
+		for i in range(1,self.n+1):
+			if i in fp:
+				if self.color[i-1] == 1:
+					foo += str(self.permutation(i))+'~'
+				else:
+					foo += str(self.permutation(i))+'_'
+			else:
+				foo += str(self.permutation(i))
+		return foo
+
+	def __str__(self):
+		return self.__repr__()
 	
 	def weak_excedance(self,i):
 		wei = set()
@@ -196,7 +213,7 @@ class GrassmannNecklace:
 		return temp
 
 def DP_to_GN(dp):
-	return GrassmannNecklace([dp.weak_excedance(i) for i in range(1,dp.n+1)])
+	return GrassmannNecklace([frozenset(dp.weak_excedance(i)) for i in range(1,dp.n+1)])
 
 def GN_to_DP(gn):
 	n = gn.n
@@ -273,23 +290,24 @@ def GN_to_bdp(gn):
 		bdp[sr[i]] = [0,1]
 	bdp[theta] = [k-1,k]
 	for i in (1..n):
-		for j in (2..k):
+		#for j in (2..k):
+		for j in (1..k):
 			if (I[i-1][j-1] - i)%n > j-1:
 				y = 0
 				for l in range((I[i-1][j-1]-i)%n):
 					if l+i == n:
-						y += -theta
+						y -= theta
 					else:
 						y += sr[(l+i)%n]
-				if y.coefficient(1) > 0:
+				if y in positive_roots(R):
 					bdp[y] = [0,j-1]
 				else:
-					foo = theta+y
+					foo = -y
 					if foo in bdp.keys():
 						value = bdp[foo]
 						bdp[foo] = [max(k-j+1,value[0]), min(len(foo.coefficients()),value[1])]
 					else:
-						bdp[theta+y] = [k-j+1, len(foo.coefficients())]
+						bdp[foo] = [k-j+1, len(foo.coefficients())]
 	return bdp
 
 class Positroid:
@@ -301,7 +319,8 @@ class Positroid:
 		self.k = gn.k
 		A = GenerateMatrix(self.inequalities, self.variables)
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=ZZ)
-		self.projected_polytope = self.polytope.affine_hull_projection()
+		if self.polytope.dim() >= 0:
+			self.projected_polytope = self.polytope.affine_hull_projection()
 		self.root_system = RootSystem(['A', self.n-1])
 		self.alcoved = AlcovedPolytope(self.root_system, GN_to_bdp(self.necklace))
 
@@ -349,7 +368,10 @@ class Positroid:
 		foo = self.cover_stats()
 		bar = []
 		for i in range(self.n+1):
-			bar.append(len(foo[i]))
+			if len(foo[i]) == 0:
+				break
+			else:
+				bar.append(len(foo[i]))
 		return bar
 
 	def bases(self):
