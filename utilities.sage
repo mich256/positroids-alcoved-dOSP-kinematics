@@ -32,3 +32,39 @@ def rev_exc(w):
 		if w(i) < i:
 			foo.append(i)
 	return foo
+
+def test1(n):
+	load('utilities.sage')
+	load('hstar.sage')
+	load('alcoved.sage')
+	S = gen_dec_perm(n)
+	for dec in S:
+		G = DP_to_GN(dec)
+		P = Positroid(G)
+		if P.polytope.dim() != n-1:
+			continue
+		else:
+			trueP = P.projected_polytope
+			h = trueP.h_star_vector()
+			h2 = P.cover_no()
+			if h != h2:
+				return False
+	return True
+
+def test2(n):
+	load('alcoved.sage')
+	load('utilities.sage')
+	for pi in Derangements(n):
+		pi = pi.to_permutation()
+		w = pi.fundamental_transformation()
+		bar = set()
+		for i in excedences(pi.inverse()):
+			bar.add(pi.inverse()(i))
+		foo = set()
+		for i in w.descents():
+			foo.add(w(i))
+		foo = frozenset(foo)
+		bar = frozenset(bar)
+		if foo != bar:
+			return False
+		return True

@@ -49,36 +49,3 @@ cdes_wrt_root(R,w,beta)
 w = Permutation([2,4,1,3])
 permutation_to_typeA_WeylGroup(w)
 
-load('utilities.sage')
-load('hstar.sage')
-load('alcoved.sage')
-S = gen_dec_perm(4)
-for dec in S:
-	G = DP_to_GN(dec)
-	P = Positroid(G)
-	if P.polytope.dim() <= 0:
-		continue
-	else:
-		trueP = P.projected_polytope
-		h = trueP.h_star_vector()
-		h2 = P.cover_no()
-		if h != h2:
-			print(trueP.vertices())
-			print(h, h2)
-
-load('alcoved.sage')
-load('utilities.sage')
-for pi in Derangements(4):
-	pi = pi.to_permutation()
-	w = pi.fundamental_transformation()
-	bar = set()
-	for i in excedences(pi.inverse()):
-		bar.add(pi.inverse()(i))
-	print(bar)
-	foo = set()
-	for i in w.descents():
-		foo.add(w(i))
-	print(foo)
-
-
-

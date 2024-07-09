@@ -135,11 +135,12 @@ class AlcovedPolytope:
 		R = self.root_system
 		for key,value in self.boundaries.items():
 			foo = x.scalar(key)
-			if foo <= value[0] or foo >= value[1]:
+			#if foo <= value[0] or foo >= value[1]:
+			if foo < value[0] or foo > value[1]:
 				return False
-			for r in positive_roots(R):
-				if x.scalar(r).denominator() == 1:
-					return False
+			#for r in positive_roots(R):
+			#	if x.scalar(r).denominator() == 1:
+			#		return False
 		return True
 
 
@@ -350,7 +351,8 @@ class Positroid:
 					u = w.left_action_product(s[i])
 					a = w(i)
 					b = w(i+1)
-					if self.is_member(u) and icdes_ij(u,a,b) < icdes_ij(w,a,b):
+					#if self.is_member(u) and icdes_ij(u,a,b) < icdes_ij(w,a,b):
+					if self.is_member(u):
 						foo += 1
 		return foo
 
