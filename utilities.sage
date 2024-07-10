@@ -3,8 +3,7 @@
 def gen_dec_perm(n):
 	temp = []
 	#one = Permutations(n).identity()
-	for pi in CyclicPermutations(range(1,n+1)):
-		pi = Permutation(pi)
+	for pi in Permutations(n):
 		#if pi == one:
 		#	continue
 		fp = pi.fixed_points()
@@ -38,18 +37,22 @@ def test1(n):
 	load('hstar.sage')
 	load('alcoved.sage')
 	S = gen_dec_perm(n)
+	count = 0
 	for dec in S:
 		G = DP_to_GN(dec)
 		P = Positroid(G)
-		if P.polytope.dim() != n-1:
-			continue
-		else:
+		if P.polytope.dim() > 0:
 			trueP = P.projected_polytope
-			h = trueP.h_star_vector()
+			h1 = trueP.h_star_vector()
 			h2 = P.cover_no()
-			if h != h2:
-				return False
-	return True
+			if trueP.dim() == n-1:
+				if h1 != h2:
+					print(P.alcoved.boundaries, P.cover_stats())
+				else:
+					count += 1
+			#else:
+				#print(dec, G.i_sorted_necklace, trueP.dim())
+	return count
 
 def test2(n):
 	load('alcoved.sage')

@@ -196,22 +196,16 @@ class GrassmannNecklace:
 		self.k = len(I[0])
 		self.necklace = I
 		self.i_sorted_necklace = []
-
-	def __repr__(self):
-		return str(self.necklace)
-	
-	def __str__(self):
-		return str(self.necklace)
-
-	def i_sort(self):
-		I = self.necklace
 		n = self.n
-		temp = []
 		for i in range(n):
 			foo = sorted([(j-i)%n for j in I[i]])
-			temp.append(tuple([(j+i)%n if (j+i)%n != 0 else n for j in foo]))
-		self.i_sorted_necklace = temp
-		return temp
+			self.i_sorted_necklace.append(tuple([(j+i)%n if (j+i)%n != 0 else n for j in foo]))
+
+	def __repr__(self):
+		return str(self.i_sorted_necklace)
+	
+	def __str__(self):
+		return str(self.i_sorted_necklace)
 
 def DP_to_GN(dp):
 	return GrassmannNecklace([frozenset(dp.weak_excedance(i)) for i in range(1,dp.n+1)])
@@ -259,7 +253,7 @@ def GenerateMatrix(eqsys, vs):
 
 def GN_to_ineqs(gn):
 	n = gn.n
-	I = gn.i_sort()
+	I = gn.i_sorted_necklace
 	k = gn.k
 	ineqs = []
 	v = [var('x%d' % i) for i in range(1,n+1)]
@@ -281,7 +275,7 @@ def GN_to_ineqs(gn):
 
 def GN_to_bdp(gn):
 	bdp = {}
-	I = gn.i_sort()
+	I = gn.i_sorted_necklace
 	n = gn.n
 	k = gn.k
 	R = RootSystem(['A',n-1])
@@ -306,9 +300,9 @@ def GN_to_bdp(gn):
 					foo = -y
 					if foo in bdp.keys():
 						value = bdp[foo]
-						bdp[foo] = [max(k-j+1,value[0]), min(len(foo.coefficients()),value[1])]
+						bdp[foo] = [max(k-j+1,value[0]), min(len(foo.coefficients()),value[1],k)]
 					else:
-						bdp[foo] = [k-j+1, len(foo.coefficients())]
+						bdp[foo] = [k-j+1, min(len(foo.coefficients()),k)]
 	return bdp
 
 class Positroid:
@@ -320,7 +314,7 @@ class Positroid:
 		self.k = gn.k
 		A = GenerateMatrix(self.inequalities, self.variables)
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=ZZ)
-		if self.polytope.dim() >= 0:
+		if self.polytope.dim() > 0:
 			self.projected_polytope = self.polytope.affine_hull_projection()
 		self.root_system = RootSystem(['A', self.n-1])
 		self.alcoved = AlcovedPolytope(self.root_system, GN_to_bdp(self.necklace))
@@ -338,21 +332,23 @@ class Positroid:
 				foo.append(w)
 		return foo
 
+	def le(self, u, w):
+		for i in range(1,self.n+1):
+			for j in range(i,self.n+1):
+				if icdes_ij(u, i, j) < icdes_ij(w, i, j):
+					return False
+		return True
+
 	def cover(self, s, w):
 		n = self.n
 		#P = Permutations(self.n)
 		#s = P.simple_reflections()
 		foo = 0
 		if self.is_member(w):
-			for i in w.descents():
-				if i == n-1 and w(i) == n:
-					continue
-				else:
-					u = w.left_action_product(s[i])
-					a = w(i)
-					b = w(i+1)
-					#if self.is_member(u) and icdes_ij(u,a,b) < icdes_ij(w,a,b):
-					if self.is_member(u):
+			#for i in w.descents():
+			for i in range(1,n):
+				u = w.left_action_product(s[i])
+				if self.le(u,w) and self.is_member(u):
 						foo += 1
 		return foo
 
@@ -370,10 +366,10 @@ class Positroid:
 		foo = self.cover_stats()
 		bar = []
 		for i in range(self.n+1):
-			if len(foo[i]) == 0:
-				break
-			else:
+			if len(foo[i]) != 0:
 				bar.append(len(foo[i]))
+			else:
+				break
 		return bar
 
 	def bases(self):
