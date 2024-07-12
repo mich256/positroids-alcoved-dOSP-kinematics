@@ -63,7 +63,7 @@ def icdes(w):
 def cover(w):
 	w = Permutation(w)
 	n = len(w)
-	foo = [i for i in range(1,n) if w(i+1)>w(i)+1]
+	foo = [i for i in range(1,n-1) if w(i+1)>w(i)+1]
 	temp = len(foo)
 	if w(1) == 1:
 		return temp
@@ -114,10 +114,3 @@ def perm_cover_polynomial(n,k):
 	R.<t> = PolynomialRing(QQ)
 	temp = no_perm_cover(n,k)
 	return sum([value*t^key for (key, value) in temp.items()])
-
-load('hstar.sage')
-
-def test_cover(n,k):
-	R.<t> = PolynomialRing(QQ)
-	return perm_cover_polynomial(n-1,k-1) + (1-t)*h_star_polynomial_of_hypersimplex(n-1,k-1) \
-	== h_star_polynomial_of_hypersimplex(n,k)

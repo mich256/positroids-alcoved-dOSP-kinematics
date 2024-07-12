@@ -40,12 +40,13 @@ def coweight_to_permutation(R, coweight):
 
 def permutation_to_coweight(u):
 	n = len(u)
-	R = RootSystem(['A', n-1])
+	R = RootSystem(['A', n])
 	lcheck = fundamental_coweights(R)
 	w = u.inverse()
 	foo = 0
 	for i in (1..n-1):
 		foo += Rational(((w(i+1)-w(i))%n)/n) * lcheck[i]
+	foo += Rational(((w(1)-w(n))%n)/n) * lcheck[n]
 	return foo
 
 def R_to_W(R, alpha):
@@ -103,6 +104,19 @@ def circuits(w):
 		w = w.left_action_product(cycle)
 	return foo
 
+def circuits_to_bin(w):
+	foo = []
+	n = len(w)
+	for s in circuits(w):
+		bar = []
+		for i in range(1,n+1):
+			if i in s:
+				bar.append(1)
+			else:
+				bar.append(0)
+		foo.append(tuple(bar))
+	return foo
+
 def circuits_of_WG(w):
 	#TODO
 	return
@@ -132,7 +146,6 @@ class AlcovedPolytope:
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=QQ)
 
 	def is_member(self, x):
-		R = self.root_system
 		for key,value in self.boundaries.items():
 			foo = x.scalar(key)
 			#if foo <= value[0] or foo >= value[1]:
@@ -278,12 +291,12 @@ def GN_to_bdp(gn):
 	I = gn.i_sorted_necklace
 	n = gn.n
 	k = gn.k
-	R = RootSystem(['A',n-1])
+	R = RootSystem(['A',n])
 	sr = R.root_lattice().simple_roots()
 	theta = R.root_lattice().highest_root()
 	for i in R.index_set():
 		bdp[sr[i]] = [0,1]
-	bdp[theta] = [k-1,k]
+	bdp[theta] = [k,k]
 	for i in (1..n):
 		#for j in (2..k):
 		for j in (1..k):
@@ -291,18 +304,10 @@ def GN_to_bdp(gn):
 				y = 0
 				for l in range((I[i-1][j-1]-i)%n):
 					if l+i == n:
-						y -= theta
+						y += sr[n]
 					else:
 						y += sr[(l+i)%n]
-				if y in positive_roots(R):
-					bdp[y] = [0,j-1]
-				else:
-					foo = -y
-					if foo in bdp.keys():
-						value = bdp[foo]
-						bdp[foo] = [max(k-j+1,value[0]), min(len(foo.coefficients()),value[1],k)]
-					else:
-						bdp[foo] = [k-j+1, min(len(foo.coefficients()),k)]
+				bdp[y] = [0,j-1]
 	return bdp
 
 class Positroid:
@@ -314,9 +319,9 @@ class Positroid:
 		self.k = gn.k
 		A = GenerateMatrix(self.inequalities, self.variables)
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=ZZ)
-		if self.polytope.dim() > 0:
-			self.projected_polytope = self.polytope.affine_hull_projection()
-		self.root_system = RootSystem(['A', self.n-1])
+		#if self.polytope.dim() > 0:
+		#	self.projected_polytope = self.polytope.affine_hull_projection()
+		self.root_system = RootSystem(['A', self.n])
 		self.alcoved = AlcovedPolytope(self.root_system, GN_to_bdp(self.necklace))
 
 	def is_member(self,w):

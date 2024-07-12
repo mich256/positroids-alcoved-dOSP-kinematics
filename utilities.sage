@@ -42,12 +42,17 @@ def test1(n):
 		G = DP_to_GN(dec)
 		P = Positroid(G)
 		if P.polytope.dim() > 0:
-			trueP = P.projected_polytope
-			h1 = trueP.h_star_vector()
+			h1 = P.polytope.h_star_vector()
 			h2 = P.cover_no()
-			if trueP.dim() == n-1:
+			if P.polytope.dim() == n-1:
+				try:
+					P1 = P.polytope.boundary_complex()
+					print(P1.is_shellable(certificate=True))
+				except:
+					print('not simplicial \n', dec)
+				#print(P1.vertices())
 				if h1 != h2:
-					print(P.alcoved.boundaries, P.cover_stats())
+					print(False, h1, h2)
 				else:
 					count += 1
 			#else:
@@ -71,3 +76,21 @@ def test2(n):
 		if foo != bar:
 			return False
 		return True
+
+def genf_des_ides(n):
+	load('des_cover.sage')
+	foo = 0
+	R.<u,t> = PolynomialRing(ZZ,'u,t')
+	#for w in CyclicPermutations(range(1,n+1)):
+	#	foo += u^(cdes(w)) * t^(icdes(w))
+	for w in Permutations(n):
+		foo += u^(w.number_of_descents()) * t^(w.number_of_idescents())
+	return foo
+
+def A_nk(n,k):
+	foo = 0
+	R.<t> = PolynomialRing(ZZ,'t')
+	for w in Permutations(n):
+		if w.number_of_descents() == k:
+			foo += t^(w.number_of_idescents())
+	return foo
