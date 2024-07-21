@@ -84,7 +84,7 @@ def genf_des_ides(n):
 	#for w in CyclicPermutations(range(1,n+1)):
 	#	foo += u^(cdes(w)) * t^(icdes(w))
 	for w in Permutations(n):
-		foo += u^(w.number_of_descents()) * t^(w.number_of_idescents())
+		foo += u^(w.number_of_descents()+1) * t^(w.number_of_idescents()+1)
 	return foo
 
 def A_nk(n,k):
@@ -92,5 +92,5 @@ def A_nk(n,k):
 	R.<t> = PolynomialRing(ZZ,'t')
 	for w in Permutations(n):
 		if w.number_of_descents() == k:
-			foo += t^(w.number_of_idescents())
+			foo += t^(w.number_of_idescents()+1)
 	return foo

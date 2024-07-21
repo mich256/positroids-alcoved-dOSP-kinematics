@@ -114,3 +114,116 @@ def perm_cover_polynomial(n,k):
 	R.<t> = PolynomialRing(QQ)
 	temp = no_perm_cover(n,k)
 	return sum([value*t^key for (key, value) in temp.items()])
+
+def completion(w):
+	n = len(w)
+	return Permutation(w+[n+1])
+
+def statistic(w):
+	w = completion(w)
+	n = len(w)
+	v = w.inverse()
+	counter = 0
+	for i in range(1,n+1):
+		a = i+1
+		b = i+2
+		if a > n:
+			a -= n
+		if b > n:
+			b -= n
+		if v(i) < v(a) < v(b):
+			counter += 1
+		if v(a) < v(b) < v(i):
+			counter += 1
+		if v(b) < v(i) < v(a):
+			counter += 1
+	return counter
+
+def cover1(w):
+	n = len(w)
+	k = w.number_of_descents()
+	W = Permutations(n)
+	w = W(w)
+	counter = 0
+	for i in range(1,n):
+		v = w.apply_simple_reflection_right(i)
+		#print(v,statistic(v))
+		if statistic(v) > statistic(w) and v.number_of_idescents() == k:
+			counter += 1
+	v = Permutation([w(n)]+w[:n-1])
+	#print(v,statistic(v))
+	if statistic(v) > statistic(w) and v.number_of_idescents() == k:
+		counter += 1
+	v = Permutation(w[1:]+[w[0]])
+	if statistic(v) > statistic(w) and v.number_of_idescents() == k:
+		counter += 1
+	return counter
+
+def cover2(w):
+	n = len(w)
+	k = w.number_of_descents()
+	W = Permutations(n)
+	w = W(w)
+	#print(statistic(w))
+	counter = 0
+	for i in range(1,n):
+		v = w.apply_simple_reflection_right(i)
+		#print(v,statistic(v))
+		if statistic(v) < statistic(w) and v.number_of_idescents() == k:
+			counter += 1
+	v = Permutation([w(n)]+w[:n-1])
+	#print(v,statistic(v))
+	if statistic(v) < statistic(w) and v.number_of_idescents() == k:
+		counter += 1
+	v = Permutation(w[1:]+[w[0]])
+	#print(v,statistic(v))
+	if statistic(v) < statistic(w) and v.number_of_idescents() == k:
+		counter += 1
+	return counter
+
+def cover3(w):
+	n = len(w)
+	foo = [i for i in range(1,n) if w(i+1)>w(i)+1]
+	temp = len(foo)
+	if w(n) == 1 or w(n) == n:
+		return temp
+	else:
+		return temp + 1
+
+def coverr(n,k):
+	temp = [0]*(n-1)
+	for w in Permutations(n-1):
+		if w.number_of_idescents() == k-1:
+			return
+	return temp
+
+def ls_to_str(l):
+	return ''.join(map(str,l))
+
+def graphDict(n,k):
+	d = {}
+	for w in Permutations(n-1):
+		if w.number_of_idescents() == k-1:
+			s = ls_to_str(w)
+			d[s] = []
+			for i in range(1,n-1):
+				v = w.apply_simple_reflection_right(i)
+				if v.number_of_idescents() == k-1:
+					d[s].append(ls_to_str(v))
+			v = Permutation([w(n-1)]+w[:n-2])
+			if v.number_of_idescents() == k-1:
+				d[s].append(ls_to_str(v))
+			v = Permutation(w[1:]+[w[0]])
+			if v.number_of_idescents() == k-1:
+				d[s].append(ls_to_str(v))
+	return d
+
+
+def genGraph(n,k):
+	G = Graph(graphDict(n,k))
+	G.plot().show()
+
+
+
+
+
