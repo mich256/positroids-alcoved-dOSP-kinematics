@@ -74,7 +74,7 @@ def cdes_wrt_root(R, w, alpha):
 	return foo
 
 def cdes_WG(R, w):
-	theta = R.root_lattice().highest_root()
+	theta = R.root_lattice().simple_roots()[0]
 	return cdes_wrt_root(R, w, theta)
 
 def permutation_to_typeA_WeylGroup(w):
@@ -148,14 +148,13 @@ class AlcovedPolytope:
 	def is_member(self, x):
 		for key,value in self.boundaries.items():
 			foo = x.scalar(key)
-			#if foo <= value[0] or foo >= value[1]:
-			if foo < value[0] or foo > value[1]:
+			if foo <= value[0] or foo >= value[1]:
+			#if foo < value[0] or foo > value[1]:
 				return False
-			#for r in positive_roots(R):
-			#	if x.scalar(r).denominator() == 1:
-			#		return False
+			for r in positive_roots(R):
+				if x.scalar(r).denominator() == 1:
+					return False
 		return True
-
 
 def i_order_leq(i,n,a,b):
 	if i <= a and a <= b:
@@ -165,6 +164,57 @@ def i_order_leq(i,n,a,b):
 	if a <= b and b <= i-1:
 		return True
 	return False
+
+class Hypersimplex:
+	def __init__(self,t,n,k):
+		self.root_system = RootSystem([t,n-1,1])
+		self.k = k
+		bdp = {}
+		R = RootSystem([t,n-1])
+		sr = R.root_lattice().simple_roots()
+		for s in sr:
+			bdp[s] = [0,1]
+		theta = R.root_lattice().highest_root()
+		bdp[theta] = [k,k]
+		self.alcoved_polytope = AlcovedPolytope(R, bdp)
+		self.weyl_group = WeylGroup([t,n-1,1])
+
+	def members_dict(self):
+		d = {}
+		R = self.root_system
+		W = self.weyl_group
+		s = W.simple_reflections()
+		for w in W:
+			f = w
+			switch = False
+			for i in R.index_set():
+				f = f*s[0]
+				if f in d.keys():
+					switch = True
+					break
+			if switch:
+				continue
+			elif cdes_WG(R, w) == self.k:
+				d[w] = []
+				for i in R.index_set():
+					v = w*s[i]
+					if cdes_WG(R, v) == self.k:
+						d[w].append(v)
+				v = w*s0
+				if cdes_WG(R, v) == self.k:
+					d[w].append(v)
+				v = w*s00
+				if cdes_WG(R, v) == self.k:
+					d[w].append(v)
+		return d
+
+	def adjacency_graph(self):
+		d = self.members_dict()
+		G = Graph(d)
+		G.show(vertex_labels=False,vertex_size=0.1)
+		G.show3d(vertex_labels=False)
+		return G
+
 
 class DecoratedPermutation:
 	def __init__(self, pi, col):
@@ -336,46 +386,6 @@ class Positroid:
 			if self.is_member(w):
 				foo.append(w)
 		return foo
-
-	def le(self, u, w):
-		for i in range(1,self.n+1):
-			for j in range(i,self.n+1):
-				if icdes_ij(u, i, j) < icdes_ij(w, i, j):
-					return False
-		return True
-
-	def cover(self, s, w):
-		n = self.n
-		#P = Permutations(self.n)
-		#s = P.simple_reflections()
-		foo = 0
-		if self.is_member(w):
-			#for i in w.descents():
-			for i in range(1,n):
-				u = w.left_action_product(s[i])
-				if self.le(u,w) and self.is_member(u):
-						foo += 1
-		return foo
-
-	def cover_stats(self):
-		P = Permutations(self.n)
-		s = P.simple_reflections()
-		foo = {}
-		for i in range(self.n+1):
-			foo[i] = []
-		for w in self.all_members():
-			foo[self.cover(s,w)].append(w)
-		return foo
-
-	def cover_no(self):
-		foo = self.cover_stats()
-		bar = []
-		for i in range(self.n+1):
-			if len(foo[i]) != 0:
-				bar.append(len(foo[i]))
-			else:
-				break
-		return bar
 
 	def bases(self):
 		return {tuple([i+1 for i in range(self.n) if v[i] != 0]) for v in self.polytope.vertices()}

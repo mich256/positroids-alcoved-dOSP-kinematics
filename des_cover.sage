@@ -9,11 +9,25 @@ def circular_descents(w):
 		foo.append(n)
 	return foo
 
+def cdes(w):
+	w = Permutation(w)
+	return len(circular_descents(w))
+
 def cdes_ij(w, i, j):
+	n = len(w)
+	while i > n:
+		i -= n
+	while j > n:
+		j -= n
 	if i == j:
 		return 0
 	foo = 0
-	if i < j:
+	if j - i == 1:
+		if w(i) > w(j):
+			return 1
+		else:
+			return 0
+	if i + 1 < j:
 		for k in range(i,j):
 			if w(k) > w(k+1):
 				foo += 1
@@ -21,7 +35,6 @@ def cdes_ij(w, i, j):
 			foo += 1
 		return foo
 	if i > j:
-		n = len(w)
 		for k in range(i,n):
 			if w(k) > w(k+1):
 				foo += 1
@@ -39,22 +52,6 @@ def icdes_ij(w, i, j):
 	u = w.inverse()
 	return cdes_ij(u,i,j)
 
-def ascents(w):
-	w = Permutation(w)
-	n = len(w)
-	foo = []
-	for i in range(1,n):
-		if w(i) < w(i+1):
-			foo.append(i)
-	return foo
-
-def inverse_circular_descents(w):
-	return circular_descents(w.inverse())
-
-def cdes(w):
-	w = Permutation(w)
-	return len(circular_descents(w))
-
 def icdes(w):
 	w = Permutation(w)
 	u = w.inverse()
@@ -69,20 +66,6 @@ def cover(w):
 		return temp
 	else:
 		return temp+1
-
-def ncov(w):
-	w = Permutation(w).inverse()
-	n = len(w)
-	foo = [i for i in range(1,n) if w(i+1)>w(i)+1]
-	return len(foo)
-
-def perm_ncov(n,k):
-	temp = {}
-	for w in perm_cdes(n,k):
-		c = ncov(w)
-		temp.setdefault(c, [])
-		temp[c].append(w)
-	return temp
 
 def perm_icdes(n,k):
 	cycle = list(range(2,n+1))
@@ -119,84 +102,6 @@ def completion(w):
 	n = len(w)
 	return Permutation(w+[n+1])
 
-def statistic(w):
-	w = completion(w)
-	n = len(w)
-	v = w.inverse()
-	counter = 0
-	for i in range(1,n+1):
-		a = i+1
-		b = i+2
-		if a > n:
-			a -= n
-		if b > n:
-			b -= n
-		if v(i) < v(a) < v(b):
-			counter += 1
-		if v(a) < v(b) < v(i):
-			counter += 1
-		if v(b) < v(i) < v(a):
-			counter += 1
-	return counter
-
-def cover1(w):
-	n = len(w)
-	k = w.number_of_descents()
-	W = Permutations(n)
-	w = W(w)
-	counter = 0
-	for i in range(1,n):
-		v = w.apply_simple_reflection_right(i)
-		#print(v,statistic(v))
-		if statistic(v) > statistic(w) and v.number_of_idescents() == k:
-			counter += 1
-	v = Permutation([w(n)]+w[:n-1])
-	#print(v,statistic(v))
-	if statistic(v) > statistic(w) and v.number_of_idescents() == k:
-		counter += 1
-	v = Permutation(w[1:]+[w[0]])
-	if statistic(v) > statistic(w) and v.number_of_idescents() == k:
-		counter += 1
-	return counter
-
-def cover2(w):
-	n = len(w)
-	k = w.number_of_descents()
-	W = Permutations(n)
-	w = W(w)
-	#print(statistic(w))
-	counter = 0
-	for i in range(1,n):
-		v = w.apply_simple_reflection_right(i)
-		#print(v,statistic(v))
-		if statistic(v) < statistic(w) and v.number_of_idescents() == k:
-			counter += 1
-	v = Permutation([w(n)]+w[:n-1])
-	#print(v,statistic(v))
-	if statistic(v) < statistic(w) and v.number_of_idescents() == k:
-		counter += 1
-	v = Permutation(w[1:]+[w[0]])
-	#print(v,statistic(v))
-	if statistic(v) < statistic(w) and v.number_of_idescents() == k:
-		counter += 1
-	return counter
-
-def cover3(w):
-	n = len(w)
-	foo = [i for i in range(1,n) if w(i+1)>w(i)+1]
-	temp = len(foo)
-	if w(n) == 1 or w(n) == n:
-		return temp
-	else:
-		return temp + 1
-
-def coverr(n,k):
-	temp = [0]*(n-1)
-	for w in Permutations(n-1):
-		if w.number_of_idescents() == k-1:
-			return
-	return temp
-
 def ls_to_str(l):
 	return ''.join(map(str,l))
 
@@ -218,10 +123,47 @@ def graphDict(n,k):
 				d[s].append(ls_to_str(v))
 	return d
 
-
 def genGraph(n,k):
 	G = Graph(graphDict(n,k))
-	G.plot().show()
+	#G.show(method='js')
+	G.show()
+	#G.show3d(edge_size=0.01, vertex_size=0.01)
+	return
+
+def statistic(w):
+	v = completion(w).inverse()
+	n = len(v)
+	k = w.number_of_idescents() + 1
+	if 2*k == n:
+		return sum([cdes_ij(v, i, i+k)-1 for i in range(1, n//2+1)])
+	temp = cdes_ij(v, 1, n-k)-1
+	a = (k+1,n)
+	while a[0]%n != 1:
+		temp += cdes_ij(v,a[0],a[1])-1
+		a = (a[0]+k, a[1]+k)
+	return temp
+
+def conjecture(n,k):
+	if k > n//2:
+		return conjecture(n,n-k)
+	temp = {}
+	for w in Permutations(n-1):
+		if w.number_of_idescents() == k-1:
+			foo = statistic(w)
+			print(w,foo)
+			temp.setdefault(foo,0)
+			temp[foo] += 1
+	return temp
+
+
+
+
+
+
+
+
+
+
 
 
 
