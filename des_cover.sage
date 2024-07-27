@@ -22,12 +22,7 @@ def cdes_ij(w, i, j):
 	if i == j:
 		return 0
 	foo = 0
-	if j - i == 1:
-		if w(i) > w(j):
-			return 1
-		else:
-			return 0
-	if i + 1 < j:
+	if i < j:
 		for k in range(i,j):
 			if w(k) > w(k+1):
 				foo += 1
@@ -102,6 +97,17 @@ def completion(w):
 	n = len(w)
 	return Permutation(w+[n+1])
 
+def decompl(w):
+	n = len(w)
+	ww = list(w).copy()
+	i = ww.index(n)
+	if i == n:
+		ww.pop()
+		return Permutation(ww)
+	else:
+		ww = ww[i+1:]+ww[:i]
+		return Permutation(ww)
+
 def ls_to_str(l):
 	return ''.join(map(str,l))
 
@@ -126,38 +132,10 @@ def graphDict(n,k):
 def genGraph(n,k):
 	G = Graph(graphDict(n,k))
 	#G.show(method='js')
-	G.show()
+	GP = G.graphplot(vertex_color='white')
+	GP.show()
 	#G.show3d(edge_size=0.01, vertex_size=0.01)
 	return
-
-def statistic(w):
-	v = completion(w).inverse()
-	n = len(v)
-	k = w.number_of_idescents() + 1
-	if 2*k == n:
-		return sum([cdes_ij(v, i, i+k)-1 for i in range(1, n//2+1)])
-	temp = cdes_ij(v, 1, n-k)-1
-	a = (k+1,n)
-	while a[0]%n != 1:
-		temp += cdes_ij(v,a[0],a[1])-1
-		a = (a[0]+k, a[1]+k)
-	return temp
-
-def conjecture(n,k):
-	if k > n//2:
-		return conjecture(n,n-k)
-	temp = {}
-	for w in Permutations(n-1):
-		if w.number_of_idescents() == k-1:
-			foo = statistic(w)
-			print(w,foo)
-			temp.setdefault(foo,0)
-			temp[foo] += 1
-	return temp
-
-
-
-
 
 
 

@@ -49,14 +49,7 @@ def permutation_to_coweight(u):
 	foo += Rational(((w(1)-w(n))%n)/n) * lcheck[n]
 	return foo
 
-def R_to_W(R, alpha):
-	W = WeylGroup(R.cartan_type())
-	A = W.domain().simple_roots()
-	return sum([alpha.coefficient(i) * A[i] for i in R.index_set()])
-
-def inv(R, w, alpha):
-	W = WeylGroup(R.cartan_type())
-	A = W.domain().simple_roots()
+def inv(W, w, alpha):
 	if w.action(alpha).is_positive_root():
 		return 0
 	if (-w.action(alpha)).is_positive_root():
@@ -64,18 +57,35 @@ def inv(R, w, alpha):
 	else:
 		raise Exception('neither positive nor negative')
 
-def cdes_wrt_root(R, w, alpha):
-	W = WeylGroup(R.cartan_type())
+def coxeter_coeff(W, alpha):
+	R = RootSystem(W)
+	fw = fundamental_coweights(R)
+	return {i: fw[i].scalar(alpha) for i in R.index_set()}
+
+def R_to_W(W,alpha):
 	A = W.domain().simple_roots()
+	return sum([alpha.coefficient(i) * A[i] for i in W.index_set()])
+
+def cdes_wrt_root(W, w, alpha):
+	A = W.domain().simple_roots()
+	R = RootSystem(W)
 	foo = 0
-	for i in R.index_set():
-		foo += alpha.coefficient(i) * inv(R, w, A[i])
-	foo += inv(R, w, -R_to_W(R,alpha))
+	for i in W.index_set():
+		foo += alpha.coefficient(i) * inv(W, w, A[i])
+	foo += inv(W, w, -R_to_W(W,alpha))
 	return foo
 
-def cdes_WG(R, w):
-	theta = R.root_lattice().simple_roots()[0]
-	return cdes_wrt_root(R, w, theta)
+def highest_classical(W):
+	R = RootSystem(W.classical())
+	theta = R.root_lattice().highest_root()
+	A = RootSystem(W).root_lattice().simple_roots()
+	ce = coxeter_coeff(W.classical(), theta)
+	return sum([ce[i] * A[i] for i in R.index_set()])
+
+def cdes_WG(W, w):
+	R = RootSystem(W)
+	theta = R.root_lattice().highest_root()
+	return cdes_wrt_root(W, w, theta)
 
 def permutation_to_typeA_WeylGroup(w):
 	n = len(w)
@@ -148,12 +158,12 @@ class AlcovedPolytope:
 	def is_member(self, x):
 		for key,value in self.boundaries.items():
 			foo = x.scalar(key)
-			if foo <= value[0] or foo >= value[1]:
-			#if foo < value[0] or foo > value[1]:
+			#if foo <= value[0] or foo >= value[1]:
+			if foo < value[0] or foo > value[1]:
 				return False
-			for r in positive_roots(R):
-				if x.scalar(r).denominator() == 1:
-					return False
+			#for r in positive_roots(self.root_system):
+			#	if x.scalar(r).denominator() == 1:
+			#		return False
 		return True
 
 def i_order_leq(i,n,a,b):
@@ -167,7 +177,7 @@ def i_order_leq(i,n,a,b):
 
 class Hypersimplex:
 	def __init__(self,t,n,k):
-		self.root_system = RootSystem([t,n-1,1])
+		self.root_system = RootSystem([t,n-1])
 		self.k = k
 		bdp = {}
 		R = RootSystem([t,n-1])
@@ -177,35 +187,22 @@ class Hypersimplex:
 		theta = R.root_lattice().highest_root()
 		bdp[theta] = [k,k]
 		self.alcoved_polytope = AlcovedPolytope(R, bdp)
-		self.weyl_group = WeylGroup([t,n-1,1])
+		self.weyl_group = WeylGroup([t,n-1])
 
 	def members_dict(self):
 		d = {}
-		R = self.root_system
 		W = self.weyl_group
 		s = W.simple_reflections()
 		for w in W:
-			f = w
-			switch = False
-			for i in R.index_set():
-				f = f*s[0]
-				if f in d.keys():
-					switch = True
-					break
-			if switch:
-				continue
-			elif cdes_WG(R, w) == self.k:
+			#print(w, cdes_WG(R,w))
+			if cdes_WG(W, w) == self.k:
 				d[w] = []
-				for i in R.index_set():
-					v = w*s[i]
-					if cdes_WG(R, v) == self.k:
+				for i in W.index_set():
+					v = w * s[i]
+					if cdes_WG(W,v) == self.k:
+						#print(v)
 						d[w].append(v)
-				v = w*s0
-				if cdes_WG(R, v) == self.k:
-					d[w].append(v)
-				v = w*s00
-				if cdes_WG(R, v) == self.k:
-					d[w].append(v)
+						#print(d)
 		return d
 
 	def adjacency_graph(self):
@@ -214,7 +211,6 @@ class Hypersimplex:
 		G.show(vertex_labels=False,vertex_size=0.1)
 		G.show3d(vertex_labels=False)
 		return G
-
 
 class DecoratedPermutation:
 	def __init__(self, pi, col):
@@ -360,6 +356,8 @@ def GN_to_bdp(gn):
 				bdp[y] = [0,j-1]
 	return bdp
 
+load('des_cover.sage')
+
 class Positroid:
 	def __init__(self, gn):
 		self.necklace = gn
@@ -386,6 +384,31 @@ class Positroid:
 			if self.is_member(w):
 				foo.append(w)
 		return foo
+
+	def graph_dict(self):
+		d = {}
+		n = self.n
+		for w in Permutations(n):
+			if w(n) == n:
+				if self.is_member(w):
+					s = ls_to_str(decompl(w))
+					d[s] = []
+					for i in range(1,n):
+						v = w.apply_simple_reflection_right(i)
+						if self.is_member(v):
+							d[s].append(ls_to_str(decompl(v)))
+					v = Permutation([n]+w[1:n-1]+[w(1)])
+					if self.is_member(v):
+						d[s].append(ls_to_str(decompl(v)))
+		return d
+
+	def gen_graph(self):
+		G = Graph(self.graph_dict())
+		#G.show(method='js')
+		GP = G.graphplot(vertex_color='white')
+		GP.show()
+		#G.show3d(edge_size=0.01, vertex_size=0.01)
+		return
 
 	def bases(self):
 		return {tuple([i+1 for i in range(self.n) if v[i] != 0]) for v in self.polytope.vertices()}
