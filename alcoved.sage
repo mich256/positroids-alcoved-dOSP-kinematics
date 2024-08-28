@@ -127,10 +127,6 @@ def circuits_to_bin(w):
 		foo.append(tuple(bar))
 	return foo
 
-def circuits_of_WG(w):
-	#TODO
-	return
-
 def BDP_to_ieqs(R, BDP):
 	sr = R.ambient_space().simple_roots()
 	ieqs = []
@@ -144,6 +140,25 @@ def BDP_to_ieqs(R, BDP):
 		ieqs.append(sum([foo[i-1] * var('x%d' %i) for i in (1..(n-1))]) <= value[1])
 	return ieqs, v
 
+def matrix_from_ieqs(eqsys, vs):
+	A = []
+	for eq in eqsys:
+		RHS = eq.rhs()
+		LHS = eq.lhs()
+		foo1 = 0
+		foo2 = 0
+		if eq.operator() == (var('t') <= 0).operator() or eq.operator() == (var('t') < 0).operator():
+			foo1 = RHS - LHS
+			A.append(extract_coefficients(foo1, vs))
+		if eq.operator() == (var('t') >= 0).operator() or eq.operator() == (var('t') > 0).operator():
+			foo2 = LHS - RHS
+			A.append(extract_coefficients(foo2, vs))
+		if eq.operator() == (var('t') == 0).operator():
+			foo1 = RHS - LHS
+			foo2 = LHS - RHS
+			A.append(extract_coefficients(foo1, vs))
+			A.append(extract_coefficients(foo2, vs))
+	return matrix(ZZ, A)
 
 class AlcovedPolytope:
 	def __init__(self, R, BoundaryParameters):
@@ -152,7 +167,7 @@ class AlcovedPolytope:
 		# the coweights are indexed from 1, not from 0
 		self.quotient_basis = [fundamental_coweights(R)[i]/R.cartan_type().dual_coxeter_number() for i in R.index_set()]
 		ieqs, v = BDP_to_ieqs(R, BoundaryParameters)
-		A = GenerateMatrix(ieqs, v)
+		A = matrix_from_ieqs(ieqs, v)
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=QQ)
 
 	def is_member(self, x):
@@ -292,24 +307,6 @@ def constant_of_SR(eq):
 def extract_coefficients(eq, vs):
 	return [constant_of_SR(eq)] + [eq.coefficient(v) for v in vs]
 
-def GenerateMatrix(eqsys, vs):
-	A = []
-	for eq in eqsys:
-		RHS = eq.rhs()
-		LHS = eq.lhs()
-		if eq.operator() == (var('t') <= 0).operator() or eq.operator() == (var('t') < 0).operator():
-			foo1 = RHS - LHS
-			A.append(extract_coefficients(foo1, vs))
-		if eq.operator() == (var('t') >= 0).operator() or eq.operator() == (var('t') > 0).operator():
-			foo2 = LHS - RHS
-			A.append(extract_coefficients(foo2, vs))
-		if eq.operator() == (var('t') == 0).operator():
-			foo1 = RHS - LHS
-			foo2 = LHS - RHS
-			A.append(extract_coefficients(foo1, vs))
-			A.append(extract_coefficients(foo2, vs))
-	return matrix(ZZ, A)
-
 def GN_to_ineqs(gn):
 	n = gn.n
 	I = gn.i_sorted_necklace
@@ -365,7 +362,7 @@ class Positroid:
 		self.n = len(self.variables)
 		self.dimension = self.n-1
 		self.k = gn.k
-		A = GenerateMatrix(self.inequalities, self.variables)
+		A = matrix_from_ieqs(self.inequalities, self.variables)
 		self.polytope = Polyhedron(ieqs = A, backend='normaliz', base_ring=ZZ)
 		#if self.polytope.dim() > 0:
 		#	self.projected_polytope = self.polytope.affine_hull_projection()
@@ -405,7 +402,7 @@ class Positroid:
 	def gen_graph(self):
 		G = Graph(self.graph_dict())
 		#G.show(method='js')
-		GP = G.graphplot(vertex_color='white')
+		GP = G.graphplot(vertex_color='white',vertex_size=700)
 		GP.show()
 		#G.show3d(edge_size=0.01, vertex_size=0.01)
 		return

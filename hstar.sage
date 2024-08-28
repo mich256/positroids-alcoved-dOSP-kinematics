@@ -1,7 +1,3 @@
-def GenerateMatrix(equsys, vars):
-    A=matrix([[equ.rhs()]+[equ.lhs().coefficient(v) for v in vars] for equ in equsys])
-    return A
-
 def h_star_vector(P):
     d = P.dim()
     E = P.ehrhart_polynomial()
