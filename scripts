@@ -53,5 +53,122 @@ for dp in gen_dec_perm(5):
 	if len(M) != 0:
 		P.graph_dict()
 		P.gen_graph()
-		
+
+
+pi = DecoratedPermutation([2,4,1,5,3],[0,0,0,0,0])
+gn = DP_to_GN(pi)
+P = Positroid(gn)
+P.polytope.Hrepresentation()
+matrix(P.polytope.Hrepresentation())
+
+P1 = Polyhedron(ieqs = [(1,-1,0,0,0,0),(-1,1,0,0,0,0)])
+int1 = P.polytope & P1
+int1.plot()
+h_star_polynomial(int1)
+# 1+t
+
+P2 = Polyhedron(ieqs = [(1,0,-1,0,0,0),(-1,0,1,0,0,0)])
+int2 = P.polytope & P2
+int2.plot()	
+h_star_polynomial(int2)
+#1+t
+
+
+P3 = Polyhedron(ieqs = [(1,0,0,0,-1,0),(-1,0,0,0,1,0)])
+int3 = P.polytope & P3
+int3.plot()
+int3.Hrepresentation()		
+h_star_polynomial(int3)
+#1+t
+
+
+P4 = Polyhedron(ieqs = [(2,-1,-1,-1,0,0),(-2,1,1,1,0,0)])
+int4 = P.polytope & P4
+int4.plot()
+int4.Hrepresentation()		
+h_star_polynomial(int4)
+#1+2*t
+
+int13 = P.polytope & P1 & P3
+dim(int13)
+int13.plot()
+h_star_polynomial(int13)
+# dim = 2
+# 1
+
+int23 = P.polytope & P2 & P3
+int23.plot()
+h_star_polynomial(int23)
+#1
+
+int14 = P.polytope & P1 & P4
+int14.plot()
+h_star_polynomial(int14)
+#1+t
+
+int24 = P.polytope & P2 & P4
+int24.plot()
+h_star_polynomial(int24)
+#1+t
+
+int34 = P.polytope & P3 & P4
+int34.plot()
+h_star_polynomial(int34)
+#1
+
+int134 = P.polytope & P1 & P3 & P4
+int134.plot()
+h_star_polynomial(int134)
+#1
+
+int234 = P.polytope & P2 & P3 & P4
+int234.plot()
+h_star_polynomial(int234)
+#1
+
+pi = DecoratedPermutation([2,4,1,3],[0,0,0,0])
+gn = DP_to_GN(pi)
+P = Positroid(gn)
+P.polytope.Hrepresentation()
+matrix(P.polytope.Hrepresentation())
+
+P1 = Polyhedron(ieqs = [(2,-1,-1,-1,0),(-2,1,1,1,0)])
+int1 = P.polytope & P1
+int1.plot()
+h_star_polynomial(int1)
+#1
+#dim =2
+
+P2 = Polyhedron(ieqs = [(1,-1,0,0,0),(-1,1,0,0,0)])
+int2 = P.polytope & P2
+int2.plot()
+h_star_polynomial(int2)
+# 1
+# dim = 2
+
+P3 = Polyhedron(ieqs = [(1,0,-1,0,0),(-1,0,1,0,0)])
+int3 = P.polytope& P3
+int3.plot()
+h_star_polynomial(int3)
+# 1
+# dim = 2
+
+int12 = P.polytope & P1 & P2
+int12.plot()
+h_star_polynomial(int12)
+# 1
+# dim = 1
+
+int13 = P.polytope & P1 & P3
+int13.plot()
+h_star_polynomial(int13)
+# 1
+# dim = 1
+
+int23 = P.polytope & P2 & P3
+int23.plot()
+h_star_polynomial(int23)
+# dim = 0
+# 1
+
 
