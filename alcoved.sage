@@ -1,6 +1,12 @@
 load('des_cover.sage')
 load('decorated_osp.sage')
 
+def constant_of_SR(eq):
+	return eq.polynomial(QQ).constant_coefficient()
+
+def extract_coefficients(eq, vs):
+	return [constant_of_SR(eq)] + [eq.coefficient(v) for v in vs]
+
 def fundamental_coweights(R):
 	return R.coweight_space().basis()
 
@@ -149,16 +155,16 @@ def matrix_from_ieqs(eqsys, vs):
 		foo2 = 0
 		if eq.operator() == (var('t') <= 0).operator() or eq.operator() == (var('t') < 0).operator():
 			foo1 = RHS - LHS
-			A.append(extract_coefficients(foo1, vs))
+			A.append(extract_coefficients(foo1,vs))
 		if eq.operator() == (var('t') >= 0).operator() or eq.operator() == (var('t') > 0).operator():
 			foo2 = LHS - RHS
-			A.append(extract_coefficients(foo2, vs))
+			A.append(extract_coefficients(foo2,vs))
 		if eq.operator() == (var('t') == 0).operator():
 			foo1 = RHS - LHS
 			foo2 = LHS - RHS
-			A.append(extract_coefficients(foo1, vs))
-			A.append(extract_coefficients(foo2, vs))
-	return matrix(ZZ, A)
+			A.append(extract_coefficients(foo1,vs))
+			A.append(extract_coefficients(foo2,vs))
+	return matrix(A)
 
 class AlcovedPolytope:
 	def __init__(self, R, BoundaryParameters):
@@ -300,12 +306,6 @@ def GN_to_DP(gn):
 			w.append(I[i] - I[(i+1)%n])
 			col.append(0)
 	return DecoratedPermutation(w, col)
-
-def constant_of_SR(eq):
-	return eq.polynomial(ZZ).constant_coefficient()
-
-def extract_coefficients(eq, vs):
-	return [constant_of_SR(eq)] + [eq.coefficient(v) for v in vs]
 
 def GN_to_ineqs(gn):
 	n = gn.n

@@ -31,7 +31,3 @@ def hypersimplex(W,k):
 	return P.polytope
 
 load('hstar.sage')
-
-def h_star_polynomial_of_hypersimplex_type(t,k):
-	W = WeylGroup(t)
-	return h_star_polynomial(hypersimplex(W,k))
