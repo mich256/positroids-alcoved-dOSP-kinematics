@@ -27,7 +27,6 @@ def hypersimplex(W,k):
 	bdp = {theta: [k-1,k]}
 	for sr in R.root_space().simple_roots():
 		bdp[sr] = [0,1]
-	P = AlcovedPolytope(R, bdp)
-	return P.polytope
+	return AlcovedPolytope(R, bdp)
 
 load('hstar.sage')

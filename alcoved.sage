@@ -137,13 +137,13 @@ def BDP_to_ieqs(R, BDP):
 	sr = R.ambient_space().simple_roots()
 	ieqs = []
 	n = R.ambient_space().dimension()
-	v = [var('x%d' % i) for i in (1..n-1)]
+	v = [var('x%d' % i) for i in (1..n)]
 	for key, value in BDP.items():
 		foo = 0
 		for i in R.index_set():
 			foo += key.coefficient(i) * sr[i]
-		ieqs.append(sum([foo[i-1] * var('x%d' %i) for i in (1..(n-1))]) >= value[0])
-		ieqs.append(sum([foo[i-1] * var('x%d' %i) for i in (1..(n-1))]) <= value[1])
+		ieqs.append(sum([foo[i-1] * var('x%d' %i) for i in (1..n)]) >= value[0])
+		ieqs.append(sum([foo[i-1] * var('x%d' %i) for i in (1..n)]) <= value[1])
 	return ieqs, v
 
 def matrix_from_ieqs(eqsys, vs):
