@@ -196,43 +196,6 @@ def i_order_leq(i,n,a,b):
 		return True
 	return False
 
-class Hypersimplex:
-	def __init__(self,t,n,k):
-		self.root_system = RootSystem([t,n-1])
-		self.k = k
-		bdp = {}
-		R = RootSystem([t,n-1])
-		sr = R.root_lattice().simple_roots()
-		for s in sr:
-			bdp[s] = [0,1]
-		theta = R.root_lattice().highest_root()
-		bdp[theta] = [k,k]
-		self.alcoved_polytope = AlcovedPolytope(R, bdp)
-		self.weyl_group = WeylGroup([t,n-1])
-
-	def members_dict(self):
-		d = {}
-		W = self.weyl_group
-		s = W.simple_reflections()
-		for w in W:
-			#print(w, cdes_WG(R,w))
-			if cdes_WG(W, w) == self.k:
-				d[w] = []
-				for i in W.index_set():
-					v = w * s[i]
-					if cdes_WG(W,v) == self.k:
-						#print(v)
-						d[w].append(v)
-						#print(d)
-		return d
-
-	def adjacency_graph(self):
-		d = self.members_dict()
-		G = Graph(d)
-		G.show(vertex_labels=False,vertex_size=0.1)
-		G.show3d(vertex_labels=False)
-		return G
-
 class DecoratedPermutation:
 	def __init__(self, pi, col):
 		self.permutation = Permutation(pi)

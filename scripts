@@ -171,4 +171,17 @@ h_star_polynomial(int23)
 # dim = 0
 # 1
 
+W = WeylGroup(['G',2])
+P = Polyhedron(ieqs = [(0,1,1,1),(0,-1,-1,-1)], backend='normaliz')
+Q1 = hypersimplex(W,1).polytope
+(P & Q1).plot()
+(P & Q1).vertices()
+(P & Q1).ehrhart_quasipolynomial()
+(P & Q1).affine_hull_projection().volume()
+Q2 = hypersimplex(W,2).polytope
+(P & Q2).plot()
+
+W = WeyGroup(['E',6])
+P = Polyhedron(ieqs = [(0,0, 0, 0, 0, 0, 1, 0, 1),(0,0, 0, 0, 0, 0, -1, 0,-1),(0, 0, 0, 0, 0, 0, 0, 1, 1), (0, 0, 0, 0, 0, 0, 0, -1, -1)], backend='normaliz')
+
 
