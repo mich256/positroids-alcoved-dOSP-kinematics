@@ -32,3 +32,12 @@ def rev_exc(w):
 		if w(i) < i:
 			foo.append(i)
 	return foo
+
+def split_binary_string_to_int(binary_string):
+    # Ensure the input is a string and contains only 0's and 1's
+    if not isinstance(binary_string, str) or not all(char in '01' for char in binary_string):
+        raise ValueError("Input must be a string containing only '0' and '1'.")
+
+    # Convert the string to a list of integers
+    return [int(char) for char in binary_string]
+

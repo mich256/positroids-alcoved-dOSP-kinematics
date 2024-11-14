@@ -364,9 +364,9 @@ class Positroid:
 
 	def gen_graph(self):
 		G = Graph(self.graph_dict())
-		#G.show(method='js')
-		GP = G.graphplot(vertex_color='white',vertex_size=700)
-		GP.show()
+		G.show(method='js')
+		GP = G.graphplot(vertex_color='white',vertex_size=1000)
+		GP.show(figsize=8)
 		#G.show3d(edge_size=0.01, vertex_size=0.01)
 		return
 
