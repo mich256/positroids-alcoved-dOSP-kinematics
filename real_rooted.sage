@@ -15,3 +15,10 @@ def hermite_matrix(p):
 		for j in range(n):
 			H[i,j] = m[i+j]
 	return H
+
+def principal_submatrix(m, k):
+    return m[range(k), range(k)]
+
+def principal_minors(m):
+	n = m.ncols()
+	return [det(principal_submatrix(m, k)) for k in range(1,n+1)]
