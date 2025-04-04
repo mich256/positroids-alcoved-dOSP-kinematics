@@ -41,3 +41,8 @@ def split_binary_string_to_int(binary_string):
     # Convert the string to a list of integers
     return [int(char) for char in binary_string]
 
+from itertools import product
+
+def generate_binary_vectors(length):
+  """Generates all binary vectors of a given length."""
+  return list(product([0, 1], repeat=length))

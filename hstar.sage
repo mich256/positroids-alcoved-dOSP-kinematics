@@ -1,7 +1,7 @@
 def h_star_vector(P):
     d = P.dim()
     E = P.ehrhart_polynomial()
-    return [sum(E(t)*binomial(d+1,j-t)*(-1)^(j-t) for t in (0..j)) for j in (0..d)]
+    return [sum([E(t)*binomial(d+1,j-t)*(-1)^(j-t) for t in (0..j)]) for j in (0..d)]
 
 def h_star_polynomial(P):
     R.<t> = PolynomialRing(QQ)
@@ -23,3 +23,7 @@ def h_star_polynomial_of_hypersimplex(n,k):
 
 def n_choose_2(n):
     return Subsets(list(range(n), 2))
+
+def permutohedron(n):
+    vertices = [vector(list(p)) for p in Permutations(n)]
+    return Polyhedron(vertices=vertices)
