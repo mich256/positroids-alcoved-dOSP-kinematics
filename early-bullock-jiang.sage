@@ -60,10 +60,27 @@ def sJ(J,n):
 					JJ.add(j-1)
 				else:
 					JJ.add(n)
-		temp[J_Sr(JJ,n)] = (-1)^(len(J&M)-k-1)
+		temp[frozenset(JJ)] = (-1)^(len(J.intersection(M))-k-1)
 	return temp
 
-
-
+def XJ_XSr(Sr,J):
+	n = Sr[0].base_set_cardinality()
+	k = sum(Sr[1])
+	IJ = set([j for j in range(1,n) if j in J and j+1 not in J])
+	temp = 0
+	if n in J and 1 not in J:
+		IJ.add(n)
+	for M in Subsets(IJ):
+		JJ = set()
+		for j in range(1,n+1):
+			if j in J.difference(M):
+				JJ.add(j)
+			if j in J.intersection(M):
+				if j != n:
+					JJ.add(j+1)
+				else:
+					JJ.add(1)
+		temp += (-1)^(len(J.intersection(M))-k-1)*sJ_XSr(Sr,JJ)
+	return temp
 
 
