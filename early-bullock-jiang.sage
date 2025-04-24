@@ -1,12 +1,10 @@
-from itertools import chain
-
 def hDOSP(n,k):
 	temp = []
 	for c2 in Compositions(n,min_part=2):
 		for osp in OrderedSetPartitions(n,c2):
 			if 1 in osp[0]:
 				for c in Compositions(k,inner=[1]*len(osp), outer=[len(i) for i in osp]):
-					temp.append((osp,c))
+					temp.append((osp,tuple(c)))
 	return temp
 
 def hDOSP_pp(pair):
@@ -36,7 +34,7 @@ def J_Sr(J,n):
 	t1.update(range(1,m))
 	S.append(t1)
 	r.append(t2)
-	return (S,r)
+	return (OrderedSetPartition(S),tuple(r))
 
 def sJ_XSr(Sr,J):
 	return max([sum(Sr[1][:j]) - sum(len(J.intersection(Set(Sr[0][i]))) for i in range(j)) for j in range(len(Sr[0]))])
@@ -46,4 +44,26 @@ def XSr(Sr):
 	k = sum(Sr[1])
 	return {J: sJ_XSr(Sr,J) for J in Subsets(n,k)}
 
-#def sJ(J):
+def sJ(J,n):
+	temp = dict()
+	k = len(J)
+	IJ = set([j for j in range(1,n+1) if j in J and j-1 not in J])
+	if 1 in J and n not in J:
+		IJ.add(1)
+	for M in Subsets(IJ):
+		JJ = set()
+		for j in range(1,n+1):
+			if j in (J-M):
+				JJ.add(j)
+			if j in (J&M):
+				if j != 1:
+					JJ.add(j-1)
+				else:
+					JJ.add(n)
+		temp[J_Sr(JJ,n)] = (-1)^(len(J&M)-k-1)
+	return temp
+
+
+
+
+
