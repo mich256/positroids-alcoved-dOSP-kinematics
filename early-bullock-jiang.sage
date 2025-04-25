@@ -83,4 +83,12 @@ def XJ_XSr(Sr,J):
 		temp += (-1)^(len(J.intersection(M))-k-1)*sJ_XSr(Sr,JJ)
 	return temp
 
+def main(n,k):
+	for Sr in hDOSP(n,k):
+		d = XSr(Sr)
+		print(hDOSP_pp(Sr))
+		print({J: XJ_XSr(Sr,J) for J in Subsets(n,k)},'\n')
 
+if __name__ == '__main__':
+	import sys
+	main(*map(int, sys.argv[1:]))
