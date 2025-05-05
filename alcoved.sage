@@ -1,5 +1,5 @@
 load('des_cover.sage')
-load('decorated_osp.sage')
+load('ocneanu.sage')
 
 def constant_of_SR(eq):
 	return eq.polynomial(QQ).constant_coefficient()

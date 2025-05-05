@@ -22,3 +22,6 @@ def principal_submatrix(m, k):
 def principal_minors(m):
 	n = m.ncols()
 	return [det(principal_submatrix(m, k)) for k in range(1,n+1)]
+
+def real_rooted(p):
+	return all([d >= 0 for d in principal_minors(hermite_matrix(p))])
