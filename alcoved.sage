@@ -233,6 +233,9 @@ class DecoratedPermutation:
 		self.k = len(wei)
 		return wei
 
+def perm_to_dp(w):
+	return DecoratedPermutation(w,[0]*len(w))
+
 class GrassmannNecklace:
 	def __init__(self, I):
 		self.n = len(I)
@@ -372,3 +375,15 @@ class Positroid:
 
 	def bases(self):
 		return {tuple([i+1 for i in range(self.n) if v[i] != 0]) for v in self.polytope.vertices()}
+
+def test(m):
+	load('hstar.sage')
+	load('real_rooted.sage')
+	for n in range(3,m):
+		for w in Derangements(n):
+			w = w.to_permutation()
+			if len(w.cycle_type()) == 1:
+				P = Positroid(DP_to_GN(perm_to_dp(w))).polytope
+				print(P.dimension())
+				print(factor(P.ehrhart_polynomial()))
+				print(factor(h_star_polynomial(P)))
