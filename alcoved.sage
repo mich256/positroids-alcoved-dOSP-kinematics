@@ -236,6 +236,25 @@ class DecoratedPermutation:
 def perm_to_dp(w):
 	return DecoratedPermutation(w,[0]*len(w))
 
+def grassperm(k,n):
+	return Permutation([(k+1)..n]+[1..k])
+
+def amalgamation(s,t):
+	ns = len(s)
+	nt = len(t)
+	temp = []
+	for i in range(1,ns):
+		if s(i) != ns:
+			temp.append(s(i))
+		else:
+			temp.append(t(1)+ns-2)
+	for i in range(ns,ns+nt-1):
+		if t(i-ns+2) != 1:
+			temp.append(t(i-ns+2)+ns-2)
+		else:
+			temp.append(s(ns))
+	return temp
+
 class GrassmannNecklace:
 	def __init__(self, I):
 		self.n = len(I)
@@ -387,3 +406,9 @@ def test(m):
 				print(P.dimension())
 				print(factor(P.ehrhart_polynomial()))
 				print(factor(h_star_polynomial(P)))
+
+def perm_to_ehr(w):
+	dp = DecoratedPermutation(w,[0]*len(w))
+	gn = DP_to_GN(dp)
+	P = Positroid(gn).polytope
+	return factor(P.ehrhart_polynomial())
