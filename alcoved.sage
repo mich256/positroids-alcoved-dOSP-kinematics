@@ -386,7 +386,7 @@ class Positroid:
 
 	def gen_graph(self):
 		G = Graph(self.graph_dict())
-		G.show(method='js')
+		#G.show(method='js')
 		GP = G.graphplot(vertex_color='white',vertex_size=1000)
 		GP.show(figsize=8)
 		#G.show3d(edge_size=0.01, vertex_size=0.01)
@@ -408,7 +408,11 @@ def test(m):
 				print(factor(h_star_polynomial(P)))
 
 def perm_to_ehr(w):
+	load('hstar.sage')
 	dp = DecoratedPermutation(w,[0]*len(w))
 	gn = DP_to_GN(dp)
-	P = Positroid(gn).polytope
-	return factor(P.ehrhart_polynomial())
+	P = Positroid(gn)
+	#P.gen_graph()
+	PP = P.polytope
+	print(factor(h_star_polynomial(P.polytope)))
+	return factor(PP.ehrhart_polynomial())
