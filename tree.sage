@@ -15,6 +15,7 @@ def alignments(pi):
     return count
 
 def trees(n):
+    '''based on Lauren's document'''
     foo = []
     for w in Derangements(n):
         w = Permutation(w)
@@ -34,37 +35,29 @@ def grassmann_necklace(w):
         v = v.left_action_product(c1).right_action_product(c2)
     return I
 
-def gn_to_ineqs(gn):
+def gn_to_ieqs(gn):
+    '''kudos to ARW'''
     n = len(gn)
     I = gn
     k = len(gn[0])
-    ineqs = []
-    v = [var('x%d' % i) for i in range(1,n+1)]
-    ineqs.append(sum(v) == k)
-    for xi in v:
-        ineqs.append(xi >= 0)
-        ineqs.append(xi <= 1)
+    ieqs = [[-k]+[1]*n,[k]+[-1]*n]
+    for i in range(n):
+        ieqs.append([0]*(i+1)+[1]+[0]*(n-i-1))
+        ieqs.append([1]+[0]*i+[-1]+[0]*(n-i-1))
     for i in range(1,n+1):
-        for j in (1..k):
+        for j in range(1,k+1):
             if (I[i-1][j-1]-i)%n > j-1:
-                y = 0
+                y = [0]*n
                 for l in range((I[i-1][j-1]-i)%n):
-                    if l+i == n:
-                        y += var('x%d'%n)
-                    else:
-                        y += var('x%d'%((l+i)%n))
-                ineqs.append(y <= j-1)
-    return ineqs, v
+                    y[(l+i)%n-1] = -1
+                ieqs.append([j-1]+y)
+    return ieqs
 
-load('alcoved.sage')
-
-def test(n):
+def write_to_files(n):
     for w in trees(n):
         gn = grassmann_necklace(w)
         k = len(gn[0])
-        ieqs, v = gn_to_ineqs(gn)
-        A = matrix_from_ieqs(ieqs, v)
-        P = Polyhedron(ieqs = A, backend='normaliz', base_ring=ZZ)
+        P = Polyhedron(ieqs = gn_to_ieqs(gn), backend='normaliz', base_ring=ZZ)
         d = dict((i,[(i+1)%n]) for i in range(n))
         for H in P.Hrepresentation():
             H = H.A()
@@ -74,5 +67,26 @@ def test(n):
             if len(l) == 1:
                 continue
             d[min(l)].append(max(l)+1)
-        Graph(d).show(vertex_color='white')
-        print(w, factor(P.ehrhart_polynomial()), P.ehrhart_series().numerator())
+        Graph(d).plot(vertex_color='white').save(w.cycle_string()+'.png')
+        with open(w.cycle_string()+'.txt', 'w') as f:
+            f.write(str(factor(P.ehrhart_polynomial()))+'\n')
+            f.write(str(P.ehrhart_series().numerator()))
+
+def w_to_tree_pos(w):
+    gn = grassmann_necklace(w)
+    n = len(gn)
+    k = len(gn[0])
+    P = Polyhedron(ieqs = gn_to_ieqs(gn), backend='normaliz', base_ring=ZZ)
+    d = dict((i,[(i+1)%n]) for i in range(n))
+    for H in P.Hrepresentation():
+        H = H.A()
+        if sum(H) == n:
+            continue
+        l = [i for i in range(n) if H[i] != 0]
+        if len(l) == 1:
+            continue
+        d[min(l)].append(max(l)+1)
+    Graph(d).plot(vertex_color='white').save(w.cycle_string()+'.png')
+    with open(w.cycle_string()+'.txt', 'w') as f:
+            f.write('Ehrhart polynomial = '+str(factor(P.ehrhart_polynomial()))+'\n')
+            f.write('h* polynomial = '+str(P.ehrhart_series().numerator()))
