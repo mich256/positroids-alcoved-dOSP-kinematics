@@ -75,4 +75,4 @@ def test(n):
                 continue
             d[min(l)].append(max(l)+1)
         Graph(d).show(vertex_color='white')
-        return w, factor(P.ehrhart_polynomial())
+        print(w, factor(P.ehrhart_polynomial()), P.ehrhart_series().numerator())
