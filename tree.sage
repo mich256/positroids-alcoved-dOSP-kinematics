@@ -86,7 +86,9 @@ def w_to_tree_pos(w):
         if len(l) == 1:
             continue
         d[min(l)].append(max(l)+1)
+    Graph(d).show()
     Graph(d).plot(vertex_color='white').save(w.cycle_string()+'.png')
     with open(w.cycle_string()+'.txt', 'w') as f:
-            f.write('Ehrhart polynomial = '+str(factor(P.ehrhart_polynomial()))+'\n')
-            f.write('h* polynomial = '+str(P.ehrhart_series().numerator()))
+        print(factor(P.ehrhart_polynomial()))
+        f.write('Ehrhart polynomial = '+str(factor(P.ehrhart_polynomial()))+'\n')
+        f.write('h* polynomial = '+str(P.ehrhart_series().numerator()))

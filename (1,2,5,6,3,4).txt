@@ -1,2 +1,0 @@
-Ehrhart polynomial = (7/60) * (t + 1) * (t + 3/2) * (t + 2) * (t^2 + 3*t + 20/7)
-h* polynomial = t^3 + 6*t^2 + 6*t + 1
