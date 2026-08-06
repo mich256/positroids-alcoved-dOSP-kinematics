@@ -416,3 +416,15 @@ def perm_to_ehr(w):
 	PP = P.polytope
 	print(factor(h_star_polynomial(P.polytope)))
 	return factor(PP.ehrhart_polynomial())
+
+def perm_to_polytope(w):
+	dp = DecoratedPermutation(w,[0]*len(w))
+	gn = DP_to_GN(dp)
+	P = Positroid(gn)
+	return P.polytope
+
+def perm_to_ieqs(w):
+	dp = DecoratedPermutation(w,[0]*len(w))
+	gn = DP_to_GN(dp)
+	print(gn)
+	return GN_to_ineqs(gn)
